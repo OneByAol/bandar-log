@@ -48,11 +48,23 @@ class AthenaApi extends LogTrait {
       stmt.execute(sql)
     } catch {
       case ex: SQLException =>
-        logger.error(s"Cannot set new location, error: $ex")
+        logger.error(s"Cannot set new location, error: ${ex.getMessage}")
     } finally {
       stmt.close()
     }
   }
 
+  def recover_all_partitions(table_name: String, db_name: String): Unit = {
+    val stmt = connection.createStatement()
+    try {
+      val sql = s"MSCK REPAIR TABLE $db_name.$table_name"
+      stmt.execute(sql)
+    } catch {
+      case ex: SQLException =>
+        logger.error(s"Cannot load partitions, error: ${ex.getMessage}")
+    } finally {
+      stmt.close()
+    }
+  }
 
 }
