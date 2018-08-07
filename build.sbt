@@ -54,7 +54,8 @@ lazy val `bandarlog` = project.enablePlugins(CodeStylePlugin && DockerSupportPlu
           scalaTest,
           mockito,
           datadogMetrics,
-          scalaCache
+          scalaCache,
+          athenaDriver
         ),
 
     dockerBaseImage := "java",
