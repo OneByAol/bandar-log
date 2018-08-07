@@ -23,7 +23,6 @@ object V {
   val slf4j               = "1.7.16"
   val scalatest           = "2.2.6"
   val mockito             = "1.10.19"
-  val glue                = "1.11.377"
   val athenaDriver        = "2.0.2"
 }
 
@@ -44,6 +43,5 @@ object Dependencies {
   val scalaz                = "org.scalaz"            %% "scalaz-core"                 % V.scalaz
   val scalaTest             = "org.scalatest"         %% "scalatest"                   % V.scalatest     % Test
   val mockito               = "org.mockito"           % "mockito-core"                 % V.mockito       % Test
-  val glue                  = "com.amazonaws"         % "aws-java-sdk-glue"            % V.glue
   val athenaDriver          = "com.syncron.amazonaws" % "simba-athena-jdbc-driver"     % V.athenaDriver
 }
