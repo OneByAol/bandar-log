@@ -4,7 +4,7 @@ import java.sql._
 
 import com.aol.one.dwh.infra.util.LogTrait
 
-class AthenaApi extends LogTrait{
+class AthenaApi extends LogTrait {
 
   private val DB_DRIVER: String = "com.simba.athena.jdbc.Driver"
   private val DB_CONNECTION: String = "jdbc:awsathena://AwsRegion=eu-central-1;" +
@@ -40,5 +40,19 @@ class AthenaApi extends LogTrait{
       stmt.close()
     }
   }
+
+  def set_table_location(table_name: String, new_location: String, db_name: String): Unit = {
+    val stmt = connection.createStatement()
+    try {
+      val sql = s"ALTER TABLE $db_name.$table_name SET LOCATION '$new_location'"
+      stmt.execute(sql)
+    } catch {
+      case ex: SQLException =>
+        logger.error(s"Cannot set new location, error: $ex")
+    } finally {
+      stmt.close()
+    }
+  }
+
 
 }
