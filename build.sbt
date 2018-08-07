@@ -40,7 +40,8 @@ lazy val `infra` = project.enablePlugins(CodeStylePlugin && ResolversPlugin).
             sparkStreamingKafka,
             hikariPool,
             scalaArm,
-            scalaz
+            scalaz,
+            athenaDriver
         )
   )
 
