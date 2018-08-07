@@ -56,8 +56,13 @@ class BandarlogsFactory(mainConfig: Config) extends LogTrait with ExceptionPrint
     bandarlogConf.getBandarlogType match {
       case "kafka" => kafkaMetricProviders(bandarlogConf)
       case "sql" => sqlMetricProviders(bandarlogConf, connectionPoolHolder)
+      case "glue" => glueMetricprovider(bandarlogConf: Config)
       case t => throw new IllegalArgumentException(s"Unsupported bandarlog type:[$t]")
     }
+  }
+
+  private def glueMetricprovider(bandarlogConf: Config) = {
+  //TODO: not implemented
   }
 
   private def kafkaMetricProviders(bandarlogConf: Config) = {
