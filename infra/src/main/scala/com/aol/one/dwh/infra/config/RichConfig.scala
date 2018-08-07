@@ -18,10 +18,10 @@ object RichConfig {
 
     def getOptionalString(path: String): Option[String] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
-      Some(underlying.getString(path))
-    } else {
-      None
-    }
+        Some(underlying.getString(path))
+      } else {
+        None
+      }
 
     def getOptionalInt(path: String): Option[Int] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
@@ -46,10 +46,10 @@ object RichConfig {
 
     def getOptionalStringList(path: String): Option[List[String]] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
-      Some(underlying.getStringList(path).toList)
-    } else {
-      None
-    }
+        Some(underlying.getStringList(path).toList)
+      } else {
+        None
+      }
 
     def getOptionalObjectList(path: String): Option[List[_ <: ConfigObject]] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
@@ -80,12 +80,12 @@ object RichConfig {
       val conf = underlying.getConfig(verticaConfigId)
 
       var jdbcConfig = JdbcConfig(
-        host     = conf.getString("host"),
-        port     = conf.getInt("port"),
-        dbName   = conf.getString("dbname"),
+        host = conf.getString("host"),
+        port = conf.getInt("port"),
+        dbName = conf.getString("dbname"),
         username = conf.getString("username"),
         password = conf.getString("password"),
-        schema   = conf.getString("schema")
+        schema = conf.getString("schema")
       )
 
       // apply overrides
@@ -121,6 +121,18 @@ object RichConfig {
         kafkaConfig.getOptionalString("brokers")
       )
     }
+
+    def getGlueConfig(configId: String): GlueConfig = {
+      val glueConfig = underlying.getConfig(configId)
+
+      GlueConfig(
+        glueConfig.getString("region"),
+        glueConfig.getString("database"),
+        glueConfig.getString("accessKey"),
+        glueConfig.getString("secretKey")
+      )
+    }
+
 
     def getReporters: List[ReporterConfig] = {
       underlying.getOptionalObjectList("reporters").getOrElse(Nil).map { obj =>
