@@ -1,11 +1,11 @@
 package com.aol.one.dwh.infra.aws
 
 import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider}
-import com.aol.one.dwh.infra.config.AthenaConfig
+import com.aol.one.dwh.infra.config.GlueConfig
 import com.simba.athena.amazonaws.auth.BasicAWSCredentials
 
 
-class BandarlogAWSCredentialsProvider(config: AthenaConfig) extends AWSCredentialsProvider {
+class BandarlogAWSCredentialsProvider(config: GlueConfig) extends AWSCredentialsProvider {
 
   override def refresh(): Unit = {}
 
