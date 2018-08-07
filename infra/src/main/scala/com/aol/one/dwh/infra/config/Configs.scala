@@ -20,6 +20,15 @@ import scala.concurrent.duration.Duration
 case class KafkaConfig(zookeeperQuorum: String, brokers: Option[String])
 
 /**
+  *
+  * @param region - aws region
+  * @param database - database name
+  * @param accessKey - access key provided by AWS account
+  * @param secretKey - secret key provided by AWS account
+  */
+case class GlueConfig(region: String, database: String, accessKey: String, secretKey: String)
+
+/**
   * Datadog Config
   *
   * @param host - datadog host
