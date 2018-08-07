@@ -15,6 +15,8 @@ class AthenaApi extends LogTrait {
   val connection: Connection = DriverManager.getConnection(DB_CONNECTION)
   val stmt: Statement = connection.createStatement()
 
+  val db_name = "Athena"
+
   private def fetchAll(rs: ResultSet): List[String] = {
     Iterator
       .continually(rs.next)
@@ -23,48 +25,72 @@ class AthenaApi extends LogTrait {
       .toList
   }
 
-  def get_table_location(table_name: String, db_name: String): Option[String] = {
+  def get_table_location(table_name: String): Option[String] = {
     val stmt = connection.createStatement()
     try {
+      logger.info(s"Request table $table_name definition to extract location.")
       val sql = s"SHOW CREATE TABLE $db_name.$table_name"
-      logger.info(s"Running query:[$sql]")
+      logger.info(s"Running query:[$sql].")
       val rs: ResultSet = stmt.executeQuery(sql)
       val location = fetchAll(rs).filter(x => x.contains("s3://"))
       rs.close()
       Some(location.head.trim.replace("\'", ""))
     } catch {
       case ex: SQLException =>
-        logger.error(s"Table $table_name was not found")
+        logger.error(s"Table $table_name was not found.")
         None
     } finally {
       stmt.close()
     }
   }
 
-  def set_table_location(table_name: String, new_location: String, db_name: String): Unit = {
+  def set_table_location(table_name: String, new_location: String): Unit = {
     val stmt = connection.createStatement()
     try {
+      logger.info(s"Set new table $table_name location $new_location")
       val sql = s"ALTER TABLE $db_name.$table_name SET LOCATION '$new_location'"
+      logger.info(s"Running query:[$sql]")
       stmt.execute(sql)
     } catch {
       case ex: SQLException =>
-        logger.error(s"Cannot set new location, error: ${ex.getMessage}")
+        logger.error(s"Cannot set new location, error: ${ex.getMessage}.")
     } finally {
       stmt.close()
     }
   }
 
-  def recover_all_partitions(table_name: String, db_name: String): Unit = {
+  def recover_all_partitions(table_name: String): Unit = {
     val stmt = connection.createStatement()
     try {
       val sql = s"MSCK REPAIR TABLE $db_name.$table_name"
+      logger.info(s"Running query:[$sql].")
       stmt.execute(sql)
     } catch {
       case ex: SQLException =>
-        logger.error(s"Cannot load partitions, error: ${ex.getMessage}")
+        logger.error(s"Cannot load partitions, error: ${ex.getMessage}.")
     } finally {
       stmt.close()
     }
   }
+
+  def check_if_table_exists(table_name: String): Option[Boolean] = {
+    val stmt = connection.createStatement()
+    try {
+      logger.info(s"Check if table $table_name exists in Athena.")
+      val sql = s"SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '$table_name'"
+      logger.info(s"Running query:[$sql].")
+      val rs: ResultSet = stmt.executeQuery(sql)
+      val check = rs.next
+      rs.close()
+      Some(check)
+    } catch {
+      case ex: SQLException =>
+        logger.error(s"Table $table_name does not exist.")
+        None
+    } finally {
+      stmt.close()
+    }
+  }
+
 
 }
