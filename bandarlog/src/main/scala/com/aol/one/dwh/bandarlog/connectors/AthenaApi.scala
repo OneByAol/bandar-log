@@ -1,6 +1,6 @@
 package com.aol.one.dwh.bandarlog.connectors
 
-import java.sql.{Connection, DriverManager, ResultSet, Statement}
+import java.sql._
 
 import com.aol.one.dwh.infra.util.LogTrait
 
@@ -21,6 +21,24 @@ class AthenaApi extends LogTrait{
       .takeWhile(identity)
       .map { _ => rs.getString(1) }
       .toList
+  }
+
+  def get_table_location(table_name: String, db_name: String): Option[String] = {
+    val stmt = connection.createStatement()
+    try {
+      val sql = s"SHOW CREATE TABLE $db_name.$table_name"
+      logger.info(s"Running query:[$sql]")
+      val rs: ResultSet = stmt.executeQuery(sql)
+      val location = fetchAll(rs).filter(x => x.contains("s3://"))
+      rs.close()
+      Some(location.head.trim.replace("\'", ""))
+    } catch {
+      case ex: SQLException =>
+        logger.error(s"Table $table_name was not found")
+        None
+    } finally {
+      stmt.close()
+    }
   }
 
 }
