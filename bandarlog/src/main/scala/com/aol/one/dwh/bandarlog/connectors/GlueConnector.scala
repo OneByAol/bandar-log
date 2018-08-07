@@ -30,7 +30,8 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
   }
 
   def getMaxBatchId(table_name: String): Long = {
-    val partitions = getPartitions(table_name).sortWith(_.getValues.get(0) > _.getValues.get(0))
+    val sortByValue = (a: Partition, b: Partition) => a.getValues.get(0) > b.getValues.get(0)
+    val partitions = getPartitions(table_name).sortWith(sortByValue)
     val maxBatchId = partitions.head.getValues.get(0).toLong
     logger.info(s"Max batch_id for table $table_name is $maxBatchId")
     maxBatchId
