@@ -1,6 +1,8 @@
 package com.aol.one.dwh.bandarlog.connectors
 
 import java.sql._
+import java.text.SimpleDateFormat
+import java.time.Duration
 
 import com.aol.one.dwh.infra.util.LogTrait
 
@@ -87,6 +89,24 @@ class AthenaApi extends LogTrait {
       case ex: SQLException =>
         logger.error(s"Table $table_name does not exist.")
         None
+    } finally {
+      stmt.close()
+    }
+  }
+
+  def clean_table(table_name: String, table_window_in_millis: Long): Unit = {
+    val stmt = connection.createStatement()
+    try {
+      val deltaTime: Duration = Duration.ofDays(1).plusMillis(table_window_in_millis)
+      val timediff = System.currentTimeMillis() - deltaTime.toMillis
+      val dateFormat = new SimpleDateFormat("YYYY-mm-dd")
+      val date = dateFormat.format(timediff)
+      val sql = s"ALTER TABLE $db_name.$table_name DROP PARTITION(date='$date')"
+      logger.info(s"Running query:[$sql].")
+      stmt.execute(sql)
+    } catch {
+      case ex: SQLException =>
+        logger.error(s"cannot clean table $table_name, error: ${ex.getMessage}.")
     } finally {
       stmt.close()
     }
