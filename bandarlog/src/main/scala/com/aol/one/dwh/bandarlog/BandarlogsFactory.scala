@@ -8,8 +8,8 @@
 
 package com.aol.one.dwh.bandarlog
 
-import com.aol.one.dwh.bandarlog.connectors.KafkaConnector
-import com.aol.one.dwh.bandarlog.metrics.{KafkaMetricFactory, Metric, SqlMetricFactory}
+import com.aol.one.dwh.bandarlog.connectors.{GlueConnector, KafkaConnector}
+import com.aol.one.dwh.bandarlog.metrics.{GlueMetricFactory, KafkaMetricFactory, Metric, SqlMetricFactory}
 import com.aol.one.dwh.bandarlog.reporters.{CustomTags, MetricReporter, RegistryFactory}
 import com.aol.one.dwh.bandarlog.scheduler.Scheduler
 import com.aol.one.dwh.infra.config.RichConfig._
@@ -56,13 +56,22 @@ class BandarlogsFactory(mainConfig: Config) extends LogTrait with ExceptionPrint
     bandarlogConf.getBandarlogType match {
       case "kafka" => kafkaMetricProviders(bandarlogConf)
       case "sql" => sqlMetricProviders(bandarlogConf, connectionPoolHolder)
-      case "glue" => glueMetricprovider(bandarlogConf: Config)
+      case "glue" => glueMetricProvider(bandarlogConf, connectionPoolHolder)
       case t => throw new IllegalArgumentException(s"Unsupported bandarlog type:[$t]")
     }
   }
 
-  private def glueMetricprovider(bandarlogConf: Config) = {
-  //TODO: not implemented
+  private def glueMetricProvider(bandarlogConf: Config, connectionPoolHolder: ConnectionPoolHolder) = {
+    val metricsPrefix = bandarlogConf.getReportConfig.prefix
+    val glueMetricFactory = new GlueMetricFactory(connectionPoolHolder)
+    val glueConfig = mainConfig.getGlueConfig(bandarlogConf.getConnector) // mainConf.getJdbcConfig(connectorConf.configId)
+    val glueConnector = new GlueConnector(glueConfig)
+
+    bandarlogConf.getTables.flatMap { case (inTable, outTable) =>
+      bandarlogConf.getMetrics.flatMap { metricId =>
+        glueMetricFactory.create(metricId, metricsPrefix, bandarlogConf.getInConnector, bandarlogConf.getOutConnectors, inTable, outTable, glueConnector)
+      }
+    }
   }
 
   private def kafkaMetricProviders(bandarlogConf: Config) = {
