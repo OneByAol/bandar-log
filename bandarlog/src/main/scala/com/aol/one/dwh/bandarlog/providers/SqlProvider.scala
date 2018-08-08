@@ -8,11 +8,12 @@
 
 package com.aol.one.dwh.bandarlog.providers
 
-import com.aol.one.dwh.bandarlog.connectors.JdbcConnector
+import com.aol.one.dwh.bandarlog.connectors.{GlueConnector, JdbcConnector}
 import com.aol.one.dwh.bandarlog.metrics.{AtomicValue, Value}
 import com.aol.one.dwh.infra.sql.LongValueResultHandler
 import com.aol.one.dwh.infra.sql.Query
 import SqlProvider._
+import com.aol.one.dwh.infra.config.TableColumn
 
 object SqlProvider {
   type Timestamp = Long
@@ -28,6 +29,13 @@ class SqlTimestampProvider(connector: JdbcConnector, query: Query) extends Times
 
   override def provide(): Value[Timestamp] = {
     AtomicValue(connector.runQuery(query, new LongValueResultHandler))
+  }
+}
+
+class GlueTimestampProvider(connector: GlueConnector, tableInfo: TableColumn) extends TimestampProvider {
+
+  override def provide(): Value[Timestamp] = {
+    AtomicValue(Option(connector.getMaxBatchId(tableInfo.table, tableInfo.column)))
   }
 }
 
