@@ -4,7 +4,7 @@ import com.aol.one.dwh.infra.aws.BandarlogAWSCredentialsProvider
 import com.aol.one.dwh.infra.config.GlueConfig
 import com.aol.one.dwh.infra.util.LogTrait
 import com.simba.athena.amazonaws.services.glue.AWSGlueClient
-import com.simba.athena.amazonaws.services.glue.model.{GetPartitionsRequest, Partition}
+import com.simba.athena.amazonaws.services.glue.model.{GetPartitionsRequest, GetTableRequest, Partition}
 
 import scala.collection.JavaConversions._
 
@@ -21,19 +21,41 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     .withCredentials(credentialProvider)
     .build()
 
-  private def getPartitions(table_name: String): List[Partition] = {
+  /**
+    * @param tableName - name of table
+    * @return - list of partitions' column names from glue metadata table
+    */
+  private def getPartitionColumns(tableName: String): List[String] = {
+    val table = new GetTableRequest
+    table.setDatabaseName(config.database)
+    table.setName(tableName)
+    val columns = glueClient.getTable(table).getTable.getPartitionKeys.map(f => f.getName).toList
+    columns
+  }
 
+  /**
+    * @param tableName - name of table
+    * @return - list of Partiton objects which contain metadata
+    */
+  private def getPartitions(tableName: String): List[Partition] = {
     val request = new GetPartitionsRequest
     request.setDatabaseName(config.database)
-    request.setTableName(table_name)
+    request.setTableName(tableName)
     glueClient.getPartitions(request).getPartitions.toList
   }
 
-  def getMaxBatchId(table_name: String): Long = {
-    val desc = (a: Partition, b: Partition) => a.getValues.get(0) > b.getValues.get(0)
-    val partitions = getPartitions(table_name).sortWith(desc)
-    val maxBatchId = partitions.head.getValues.get(0).toLong
-    logger.info(s"Max batch_id for table $table_name is $maxBatchId")
+  /**
+    * @param tableName   - name of table
+    * @param tableColumn - name of partition column
+    * @return - max value in partition column
+    */
+  def getMaxBatchId(tableName: String, tableColumn: String): Long = {
+
+    val columns = getPartitionColumns(tableName)
+    val values = getPartitions(tableName).map(p => p.getValues)
+    val maxBatchId = values.flatMap(elem => elem.zip(columns))
+      .filter(tuple => tuple._2 == tableColumn)
+      .map(x => x._1.toLong).max
     maxBatchId
   }
 }
