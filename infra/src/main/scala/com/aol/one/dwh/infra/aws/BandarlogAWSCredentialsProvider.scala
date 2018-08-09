@@ -9,9 +9,6 @@ class BandarlogAWSCredentialsProvider(config: GlueConfig) extends AWSCredentials
 
   override def refresh(): Unit = {}
 
-  override def getCredentials: AWSCredentials = {
+  override def getCredentials: AWSCredentials = new BasicAWSCredentials(config.accessKey, config.secretKey)
 
-    new BasicAWSCredentials(config.accessKey, config.secretKey)
-
-  }
 }
