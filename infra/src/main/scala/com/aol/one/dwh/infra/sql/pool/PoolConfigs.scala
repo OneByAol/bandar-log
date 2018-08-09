@@ -20,6 +20,7 @@ import com.zaxxer.hikari.HikariConfig
 object SqlSource {
   val VERTICA = "vertica"
   val PRESTO = "presto"
+  val GLUE = "glue"
 }
 
 object PoolConfig {
