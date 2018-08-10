@@ -10,6 +10,7 @@ package com.aol.one.dwh.bandarlog
 
 import com.aol.one.dwh.bandarlog.connectors.KafkaConnector
 import com.aol.one.dwh.bandarlog.metrics._
+import com.aol.one.dwh.bandarlog.providers.ProviderFactory
 import com.aol.one.dwh.bandarlog.reporters.{CustomTags, MetricReporter, RegistryFactory}
 import com.aol.one.dwh.bandarlog.scheduler.Scheduler
 import com.aol.one.dwh.infra.config.RichConfig._
@@ -73,7 +74,8 @@ class BandarlogsFactory(mainConfig: Config) extends LogTrait with ExceptionPrint
 
   private def metricProviders(bandarlogConf: Config, connectionPoolHolder: ConnectionPoolHolder) = {
     val metricsPrefix = bandarlogConf.getReportConfig.prefix
-    val metricFactory = new MetricFactory(connectionPoolHolder, bandarlogConf, mainConfig)
+    val providerFactory = new ProviderFactory(mainConfig, connectionPoolHolder)
+    val metricFactory = new MetricFactory(connectionPoolHolder, bandarlogConf, providerFactory)
 
     bandarlogConf.getTables.flatMap { case (inTable, outTable) =>
       bandarlogConf.getMetrics.flatMap { metricId =>
