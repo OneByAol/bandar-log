@@ -24,13 +24,13 @@ import com.aol.one.dwh.infra.config.{ConnectorConfig, TableColumn, Tag}
 class SqlMetricFactory(connectionPoolHolder: ConnectionPoolHolder) {
 
   def create(
-    metricId: String,
-    metricPrefix: String,
-    inConnector: ConnectorConfig,
-    outConnectors: Seq[ConnectorConfig],
-    inTable: TableColumn,
-    outTable: TableColumn
-  ): Seq[MetricProvider[Long]] = metricId match {
+              metricId: String,
+              metricPrefix: String,
+              inConnector: ConnectorConfig,
+              outConnectors: Seq[ConnectorConfig],
+              inTable: TableColumn,
+              outTable: TableColumn
+            ): Seq[MetricProvider[Long]] = metricId match {
 
     case IN =>
       val tags = List(Tag("in_table", inTable.table), Tag("in_connector", inConnector.tag))
