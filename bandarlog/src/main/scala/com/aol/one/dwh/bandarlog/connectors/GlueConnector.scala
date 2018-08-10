@@ -4,8 +4,9 @@ import com.aol.one.dwh.infra.aws.BandarlogAWSCredentialsProvider
 import com.aol.one.dwh.infra.config.GlueConfig
 import com.aol.one.dwh.infra.util.LogTrait
 import com.simba.athena.amazonaws.services.glue.AWSGlueClient
-import com.simba.athena.amazonaws.services.glue.model.{GetPartitionsRequest, GetTableRequest, Partition}
+import com.simba.athena.amazonaws.services.glue.model.{GetPartitionsRequest, GetTableRequest, Partition, Segment}
 
+import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 
 /**
@@ -20,11 +21,12 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     .withRegion(config.region)
     .withCredentials(credentialProvider)
     .build()
+  private val fetchSize = config.fetchSize
+  private val request = new GetPartitionsRequest
+  private val segment = new Segment()
 
-  /**
-    * @param tableName - name of table
-    * @return - list of partitions' column names from glue metadata table
-    */
+  segment.setTotalSegments(1)
+
   private def getPartitionColumns(tableName: String): List[String] = {
     val table = new GetTableRequest
     table.setDatabaseName(config.database)
@@ -33,29 +35,29 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     columns
   }
 
-  /**
-    * @param tableName - name of table
-    * @return - list of Partiton objects which contain metadata
-    */
-  private def getPartitions(tableName: String): List[Partition] = {
-    val request = new GetPartitionsRequest
-    request.setDatabaseName(config.database)
-    request.setTableName(tableName)
-    glueClient.getPartitions(request).getPartitions.toList
-  }
-
-  /**
-    * @param tableName   - name of table
-    * @param tableColumn - name of partition column
-    * @return - max value in partition column
-    */
-  def getMaxBatchId(tableName: String, tableColumn: String): Long = {
-
+  private def temporaryMax(tableName: String, tableColumn: String, list: List[Partition]): Long = {
     val columns = getPartitionColumns(tableName)
-    val values = getPartitions(tableName).map(p => p.getValues)
-    val maxBatchId = values.flatMap(elem => elem.zip(columns))
-      .filter(tuple => tuple._2 == tableColumn)
-      .map(x => x._1.toLong).max
-    maxBatchId
+    val values = list.map(p => p.getValues)
+    val r = values.flatMap(x => x.zip(columns)).filter(tuple => tuple._2 == tableColumn).map(x => x._1.toLong).max
+    r
   }
+
+  def getMaxBatchId(tableName: String, columnName: String): Long = {
+    @tailrec
+    def getMaxInSegment(token: String, previousMax: Long): (String, Long) = {
+      val token = glueClient.getPartitions(request.withMaxResults(fetchSize)).getNextToken
+      val values = glueClient.getPartitions(request.withNextToken(token).withMaxResults(fetchSize)).getPartitions.toList
+      if (values.nonEmpty) {
+        val maxValue = temporaryMax(tableName, columnName, values)
+        val res = previousMax.max(maxValue)
+        getMaxInSegment(token, res)
+      } else {
+        (token, previousMax)
+      }
+    }
+
+    val (_, max) = getMaxInSegment("", 0)
+    max
+  }
+
 }
