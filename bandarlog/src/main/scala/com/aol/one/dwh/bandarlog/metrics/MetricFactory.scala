@@ -1,37 +1,13 @@
 package com.aol.one.dwh.bandarlog.metrics
 
-import com.aol.one.dwh.bandarlog.connectors.{GlueConnector, JdbcConnector}
 import com.aol.one.dwh.bandarlog.metrics.BaseMetrics.{IN, LAG, OUT}
 import com.aol.one.dwh.bandarlog.metrics.Metrics.REALTIME_LAG
-import com.aol.one.dwh.bandarlog.providers.SqlProvider.TimestampProvider
-import com.aol.one.dwh.bandarlog.providers.{CurrentTimestampProvider, GlueTimestampProvider, SqlLagProvider, SqlTimestampProvider}
+import com.aol.one.dwh.bandarlog.providers._
 import com.aol.one.dwh.infra.config.{ConnectorConfig, TableColumn, Tag}
-import com.aol.one.dwh.infra.sql.MaxValuesQuery
 import com.aol.one.dwh.infra.sql.pool.ConnectionPoolHolder
-import com.aol.one.dwh.infra.sql.pool.SqlSource.{GLUE, PRESTO, VERTICA}
 import com.typesafe.config.Config
-import com.aol.one.dwh.infra.config.RichConfig._
 
-class MetricFactory(connectionPoolHolder: ConnectionPoolHolder, bandarlogConf: Config, mainConfig: Config) {
-
-  private def getProvider(connector: ConnectorConfig, table: TableColumn): TimestampProvider = {
-    connector.connectorType match {
-
-      case VERTICA | PRESTO => {
-        val query = MaxValuesQuery.get(connector.connectorType)(table)
-        val connectionPool = connectionPoolHolder.get(connector)
-        val provider = new SqlTimestampProvider(JdbcConnector(connector.connectorType, connectionPool), query)
-        provider
-      }
-
-      case GLUE =>
-        val glueConfig = mainConfig.getGlueConfig(connector.configId)
-        val glueConnector = new GlueConnector(glueConfig)
-        val provider = new GlueTimestampProvider(glueConnector, table)
-        provider
-
-    }
-  }
+class MetricFactory(connectionPoolHolder: ConnectionPoolHolder, bandarlogConf: Config, provider: ProviderFactory) {
 
   def create(
               metricId: String,
@@ -45,14 +21,14 @@ class MetricFactory(connectionPoolHolder: ConnectionPoolHolder, bandarlogConf: C
     case IN =>
       val tags = List(Tag("in_table", inTable.table), Tag("in_connector", inConnector.tag))
       val inMetric = AtomicMetric[Long](metricPrefix, "in_timestamp", tags)
-      val inProvider = getProvider(inConnector, inTable)
+      val inProvider = provider.getProvider(inConnector, inTable)
       Seq(MetricProvider(inMetric, inProvider))
 
     case OUT =>
       outConnectors.map { outConnector =>
         val tags = List(Tag("out_table", outTable.table), Tag("out_connector", outConnector.tag))
         val outMetric = AtomicMetric[Long](metricPrefix, "out_timestamp", tags)
-        val outProvider = getProvider(outConnector, outTable)
+        val outProvider = provider.getProvider(outConnector, outTable)
         MetricProvider(outMetric, outProvider)
       }
 
