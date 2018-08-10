@@ -26,7 +26,7 @@ case class KafkaConfig(zookeeperQuorum: String, brokers: Option[String])
   * @param accessKey - access key provided by AWS account
   * @param secretKey - secret key provided by AWS account
   */
-case class GlueConfig(region: String, database: String, accessKey: String, secretKey: String)
+case class GlueConfig(region: String, database: String, accessKey: String, secretKey: String, fetchSize: Int)
 
 /**
   * Datadog Config
