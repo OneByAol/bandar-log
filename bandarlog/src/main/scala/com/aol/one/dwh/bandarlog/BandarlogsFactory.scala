@@ -74,7 +74,7 @@ class BandarlogsFactory(mainConfig: Config) extends LogTrait with ExceptionPrint
 
   private def metricProviders(bandarlogConf: Config, connectionPoolHolder: ConnectionPoolHolder) = {
     val metricsPrefix = bandarlogConf.getReportConfig.prefix
-    val providerFactory = new ProviderFactory(mainConfig, connectionPoolHolder)
+    val providerFactory = new ProviderFactory(mainConfig, connectionPoolHolder, bandarlogConf)
     val metricFactory = new MetricFactory(connectionPoolHolder, bandarlogConf, providerFactory)
 
     bandarlogConf.getTables.flatMap { case (inTable, outTable) =>
