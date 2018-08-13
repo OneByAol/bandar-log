@@ -18,52 +18,52 @@ object RichConfig {
 
     def getOptionalString(path: String): Option[String] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
-      Some(underlying.getString(path))
-    } else {
-      None
-    }
+        Some(underlying.getString(path))
+      } else {
+        None
+      }
 
     def getOptionalInt(path: String): Option[Int] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
-      Some(underlying.getInt(path))
-    } else {
-      None
-    }
+        Some(underlying.getInt(path))
+      } else {
+        None
+      }
 
     def getOptionalLong(path: String): Option[Long] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
-      Some(underlying.getLong(path))
-    } else {
-      None
-    }
+        Some(underlying.getLong(path))
+      } else {
+        None
+      }
 
     def getOptionalBoolean(path: String): Option[Boolean] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
-      Some(underlying.getBoolean(path))
-    } else {
-      None
-    }
+        Some(underlying.getBoolean(path))
+      } else {
+        None
+      }
 
     def getOptionalStringList(path: String): Option[List[String]] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
-      Some(underlying.getStringList(path).toList)
-    } else {
-      None
-    }
+        Some(underlying.getStringList(path).toList)
+      } else {
+        None
+      }
 
     def getOptionalObjectList(path: String): Option[List[_ <: ConfigObject]] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
-      Some(underlying.getObjectList(path).toList)
-    } else {
-      None
-    }
+        Some(underlying.getObjectList(path).toList)
+      } else {
+        None
+      }
 
     def getOptionalConfig(path: String): Option[Config] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
-      Some(underlying.getConfig(path))
-    } else {
-      None
-    }
+        Some(underlying.getConfig(path))
+      } else {
+        None
+      }
   }
 
   implicit class RichConfig(val underlying: Config) extends AnyRef {
@@ -80,12 +80,12 @@ object RichConfig {
       val conf = underlying.getConfig(verticaConfigId)
 
       var jdbcConfig = JdbcConfig(
-        host     = conf.getString("host"),
-        port     = conf.getInt("port"),
-        dbName   = conf.getString("dbname"),
+        host = conf.getString("host"),
+        port = conf.getInt("port"),
+        dbName = conf.getString("dbname"),
         username = conf.getString("username"),
         password = conf.getString("password"),
-        schema   = conf.getString("schema")
+        schema = conf.getString("schema")
       )
 
       // apply overrides
@@ -129,7 +129,8 @@ object RichConfig {
         glueConfig.getString("region"),
         glueConfig.getString("database"),
         glueConfig.getString("accessKey"),
-        glueConfig.getString("secretKey")
+        glueConfig.getString("secretKey"),
+        glueConfig.getInt("fetchSize")
       )
     }
 
