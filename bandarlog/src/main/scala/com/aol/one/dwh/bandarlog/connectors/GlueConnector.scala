@@ -78,6 +78,7 @@ class GlueConnector(config: GlueConfig, configScheduler: SchedulerConfig) extend
     * @return - max value in Partition list in one segment of table
     */
   private def getMaxBatchIdPerSegment(tableName: String, columnName: String, segmentNumber: Int): Long = {
+    request.setTableName(tableName)
     segment.withSegmentNumber(segmentNumber)
     val fistFetch = glueClient.getPartitions(request.withSegment(segment).withMaxResults(fetchSize)).getPartitions.toList
 
