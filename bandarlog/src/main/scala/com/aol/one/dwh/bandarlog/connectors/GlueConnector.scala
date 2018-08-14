@@ -23,10 +23,10 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
   private val credentialsProvider = new AWSCredentialsProvider {
     override def refresh(): Unit = {}
 
-    override def getCredentials: AWSCredentials = new BasicAWSCredentials(config.username, config.password)
+    override def getCredentials: AWSCredentials = new BasicAWSCredentials(config.accessKey, config.secretKey)
   }
   private val glueClient = AWSGlueClient.builder()
-    .withRegion(config.host)
+    .withRegion(config.region)
     .withCredentials(credentialsProvider)
     .build()
   private val segmentTotalNumber = config.segmentTotalNumber
