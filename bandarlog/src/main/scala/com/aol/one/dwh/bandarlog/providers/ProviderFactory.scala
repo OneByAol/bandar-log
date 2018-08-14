@@ -9,7 +9,7 @@ import com.typesafe.config.Config
 import com.aol.one.dwh.infra.config.RichConfig._
 import com.aol.one.dwh.infra.sql.pool.ConnectionPoolHolder
 
-class ProviderFactory(mainConfig: Config, connectionPoolHolder: ConnectionPoolHolder, bandarlogConf: Config) {
+class ProviderFactory(mainConfig: Config, connectionPoolHolder: ConnectionPoolHolder) {
 
   def getProvider(connector: ConnectorConfig, table: TableColumn): TimestampProvider = {
     connector.connectorType match {
@@ -23,11 +23,9 @@ class ProviderFactory(mainConfig: Config, connectionPoolHolder: ConnectionPoolHo
 
       case GLUE =>
         val glueConfig = mainConfig.getGlueConfig(connector.configId)
-        val schedulerConfig = bandarlogConf.getSchedulerConfig
-        val glueConnector = new GlueConnector(glueConfig, schedulerConfig)
+        val glueConnector = new GlueConnector(glueConfig)
         val provider = new GlueTimestampProvider(glueConnector, table)
         provider
-
     }
   }
 }
