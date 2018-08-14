@@ -126,10 +126,10 @@ object RichConfig {
       val glueConfig = underlying.getConfig(configId)
 
       GlueConfig(
-        glueConfig.getString("host"),
+        glueConfig.getString("region"),
         glueConfig.getString("dbname"),
-        glueConfig.getString("username"),
-        glueConfig.getString("password"),
+        glueConfig.getString("access.key"),
+        glueConfig.getString("secret.key"),
         glueConfig.getInt("fetch.size"),
         glueConfig.getInt("segment.total.number"),
         glueConfig.getInt("maxwait.timeout.seconds").seconds
