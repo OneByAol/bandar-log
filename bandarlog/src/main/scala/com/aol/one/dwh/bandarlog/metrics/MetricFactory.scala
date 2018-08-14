@@ -10,13 +10,12 @@ import com.typesafe.config.Config
 class MetricFactory(connectionPoolHolder: ConnectionPoolHolder, bandarlogConf: Config, provider: ProviderFactory) {
 
   def create(
-              metricId: String,
-              metricPrefix: String,
-              inConnector: ConnectorConfig,
-              outConnectors: Seq[ConnectorConfig],
-              inTable: TableColumn,
-              outTable: TableColumn
-            ): Seq[MetricProvider[Long]] = metricId match {
+      metricId: String,
+      metricPrefix: String,
+      inConnector: ConnectorConfig,
+      outConnectors: Seq[ConnectorConfig],
+      inTable: TableColumn,
+      outTable: TableColumn): Seq[MetricProvider[Long]] = metricId match {
 
     case IN =>
       val tags = List(Tag("in_table", inTable.table), Tag("in_connector", inConnector.tag))
@@ -32,7 +31,6 @@ class MetricFactory(connectionPoolHolder: ConnectionPoolHolder, bandarlogConf: C
         MetricProvider(outMetric, outProvider)
       }
 
-
     case LAG =>
       val inMetricProvider = create(IN, metricPrefix, inConnector, outConnectors, inTable, outTable).head
       val outMetricProviders = create(OUT, metricPrefix, inConnector, outConnectors, inTable, outTable)
@@ -41,7 +39,6 @@ class MetricFactory(connectionPoolHolder: ConnectionPoolHolder, bandarlogConf: C
         val tags = inMetricProvider.metric.tags ++ outMetricProvider.metric.tags
         val lagMetric = AtomicMetric[Long](metricPrefix, "lag", tags)
         val lagProvider = new SqlLagProvider(inMetricProvider.provider, outMetricProvider.provider)
-
         MetricProvider(lagMetric, lagProvider)
       }
 
@@ -52,7 +49,6 @@ class MetricFactory(connectionPoolHolder: ConnectionPoolHolder, bandarlogConf: C
         val realtimeLagMetric = AtomicMetric[Long](metricPrefix, "realtime_lag", outMetricProvider.metric.tags)
         val currentTimestampProvider = new CurrentTimestampProvider()
         val realtimeLagProvider = new SqlLagProvider(currentTimestampProvider, outMetricProvider.provider)
-
         MetricProvider(realtimeLagMetric, realtimeLagProvider)
       }
 
