@@ -2,55 +2,60 @@ package com.aol.one.dwh.bandarlog.connectors
 
 import java.util.concurrent.{Callable, ExecutorService, Executors}
 
-import com.aol.one.dwh.infra.aws.BandarlogAWSCredentialsProvider
-import com.aol.one.dwh.infra.config.{GlueConfig, SchedulerConfig}
+import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider}
+import com.aol.one.dwh.infra.config.GlueConfig
 import com.aol.one.dwh.infra.util.LogTrait
+import com.simba.athena.amazonaws.auth.BasicAWSCredentials
 import com.simba.athena.amazonaws.services.glue.AWSGlueClient
 import com.simba.athena.amazonaws.services.glue.model.{GetPartitionsRequest, GetTableRequest, Partition, Segment}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Await, Future}
 
 /**
   * Glue Connector
   *
   * Provides access to the metadata table
   */
-class GlueConnector(config: GlueConfig, configScheduler: SchedulerConfig) extends LogTrait {
+class GlueConnector(config: GlueConfig) extends LogTrait {
 
-  private val credentialProvider = new BandarlogAWSCredentialsProvider(config: GlueConfig)
+  private val credentialsProvider = new AWSCredentialsProvider {
+    override def refresh(): Unit = {}
 
+    override def getCredentials: AWSCredentials = new BasicAWSCredentials(config.username, config.password)
+  }
   private val glueClient = AWSGlueClient.builder()
-    .withRegion(config.region)
-    .withCredentials(credentialProvider)
+    .withRegion(config.host)
+    .withCredentials(credentialsProvider)
     .build()
-
-  private val fetchSize = config.fetchSize
-
-  private val request = new GetPartitionsRequest
-  request.setDatabaseName(config.database)
-
-  val segmentTotalNumber = 10
-  private val segment = new Segment()
-  segment.setTotalSegments(segmentTotalNumber)
-
+  private val segmentTotalNumber = config.segmentTotalNumber
   private val pool: ExecutorService = Executors.newFixedThreadPool(segmentTotalNumber)
-  implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1))
+
+  private def createPartitionsRequest(config: GlueConfig): GetPartitionsRequest = {
+    val request = new GetPartitionsRequest
+    request.setDatabaseName(config.dbname)
+    request
+  }
+
+  private def createSegment(number: Int): Segment = {
+    val segment = new Segment()
+    segment.setTotalSegments(number)
+    segment
+  }
 
   /**
     * Fetches list of names of partition columns in table
     *
     * @param tableName - table name
-    * @return - list of names of partition columns
+    * @return          - list of names of partition columns
     */
-
   private def getPartitionColumns(tableName: String): List[String] = {
-    val table = new GetTableRequest
-    table.setDatabaseName(config.database)
-    table.setName(tableName)
-    val columns = glueClient.getTable(table).getTable.getPartitionKeys.map(f => f.getName).toList
-    columns
+    val tableRequest = new GetTableRequest
+    tableRequest.setDatabaseName(config.dbname)
+    tableRequest.setName(tableName)
+    glueClient.getTable(tableRequest).getTable.getPartitionKeys.map(_.getName).toList
   }
 
   /**
@@ -59,14 +64,16 @@ class GlueConnector(config: GlueConfig, configScheduler: SchedulerConfig) extend
     * @param tableName   - table name
     * @param tableColumn - column name
     * @param list        - list of Partitions
-    * @return - max value in Partition list
+    * @return            - max value in Partition list
     */
-
   private def temporaryMax(tableName: String, tableColumn: String, list: List[Partition]): Long = {
-    val columns = getPartitionColumns(tableName)
-    val values = list.map(p => p.getValues)
-    val r = values.flatMap(x => x.zip(columns)).filter(tuple => tuple._2 == tableColumn).map(x => x._1.toLong).max
-    r
+    val columnNames = getPartitionColumns(tableName)
+    val batchIdValues = list.map(_.getValues)
+    batchIdValues
+      .flatMap(value => value.zip(columnNames))
+      .filter { case (value, columnName) => columnName == tableColumn }
+      .map { case (value, columnName) => value.toLong }
+      .max
   }
 
   /**
@@ -75,31 +82,32 @@ class GlueConnector(config: GlueConfig, configScheduler: SchedulerConfig) extend
     * @param tableName     - table name
     * @param columnName    - column name
     * @param segmentNumber - number of segment
-    * @return - max value in Partition list in one segment of table
+    * @param request       - request for getting partitions
+    * @param segment       - segment - a non-overlapping region of a table's partitions
+    * @return              - max value in Partition list in one segment of table
     */
-  private def getMaxBatchIdPerSegment(tableName: String, columnName: String, segmentNumber: Int): Long = {
+  private def getMaxBatchIdPerSegment(tableName: String, columnName: String, segmentNumber: Int, request: GetPartitionsRequest, segment: Segment): Long = {
     request.setTableName(tableName)
     segment.withSegmentNumber(segmentNumber)
-    val fistFetch = glueClient.getPartitions(request.withSegment(segment).withMaxResults(fetchSize)).getPartitions.toList
+    val fetchSize = config.maxFetchSize
+    val firstFetch = glueClient.getPartitions(request.withSegment(segment).withMaxResults(fetchSize)).getPartitions.toList
 
     @tailrec
-    def maxBatchIdPerRequest(token: String, previousMax: Long): (String, Long) = {
+    def maxBatchIdPerRequest(token: String, previousMax: Long, request: GetPartitionsRequest, segment: Segment): (String, Long) = {
       val token = glueClient.getPartitions(request.withSegment(segment).withMaxResults(fetchSize)).getNextToken
-      val values = glueClient.getPartitions(request.withSegment(segment).withNextToken(token).withMaxResults(fetchSize)).getPartitions.toList
-      // println(values.map(x => x.getValues))
-      if (values.nonEmpty) {
-        val maxValue = temporaryMax(tableName, columnName, values)
-        val res = previousMax.max(maxValue)
-        // println(res)
-        maxBatchIdPerRequest(token, res)
+      val partitions = glueClient.getPartitions(request.withSegment(segment).withNextToken(token).withMaxResults(fetchSize)).getPartitions.toList
+      if (partitions.nonEmpty) {
+        val maxValue = temporaryMax(tableName, columnName, partitions)
+        val result = previousMax.max(maxValue)
+        maxBatchIdPerRequest(token, result, request, segment)
       } else {
         (token, previousMax)
       }
     }
 
-    if (fistFetch.nonEmpty) {
-      val firstMax = temporaryMax(tableName, columnName, fistFetch)
-      val (_, max) = maxBatchIdPerRequest("", firstMax)
+    if (firstFetch.nonEmpty) {
+      val firstMax = temporaryMax(tableName, columnName, firstFetch)
+      val (_, max) = maxBatchIdPerRequest("", firstMax, request, segment)
       max
     } else {
       0
@@ -107,27 +115,29 @@ class GlueConnector(config: GlueConfig, configScheduler: SchedulerConfig) extend
   }
 
   /**
-    * Calculates value in partition column (max batchId)
+    * Calculates value in partition column (max batchId), allowing multiple requests to segments to be executed in parallel
     *
     * @param tableName  - table name
     * @param columnName - column name
-    * @return - max value in partition column (max batchId)
+    * @return           - max value in partition column (max batchId)
     */
-
   def getMaxBatchId(tableName: String, columnName: String): Long = {
+    val request: GetPartitionsRequest = createPartitionsRequest(config)
+    val segment: Segment = createSegment(segmentTotalNumber)
     val futures: IndexedSeq[Future[Long]] = (0 until segmentTotalNumber) map { number =>
       Future {
         pool.submit(
           new Callable[Long] {
             override def call(): Long = {
-              getMaxBatchIdPerSegment(tableName, columnName, number)
+              getMaxBatchIdPerSegment(tableName, columnName, number, request, segment)
             }
           }
         ).get()
       }
     }
     val results = Future.sequence(futures)
-    Await.result(results, configScheduler.schedulingPeriod).max
+    val maxbatchId = Await.result(results, config.maxWaitTimeout).max
+    logger.info(s"Max batchId in table $tableName is: $maxbatchId")
+    maxbatchId
   }
-
 }
