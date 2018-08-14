@@ -20,13 +20,25 @@ import scala.concurrent.duration.Duration
 case class KafkaConfig(zookeeperQuorum: String, brokers: Option[String])
 
 /**
+  * Glue client configuration
   *
-  * @param region - aws region
-  * @param database - database name
-  * @param accessKey - access key provided by AWS account
-  * @param secretKey - secret key provided by AWS account
+  * @param host               - aws region
+  * @param dbname             - database name
+  * @param username           - access key provided by AWS account
+  * @param password           - secret key provided by AWS account
+  * @param maxFetchSize       - the maximum number of partitions to return in a single response
+  * @param segmentTotalNumber - total numer of segments in glue table, also sets the level of parallelism of computation (number of threads)
+  * @param maxWaitTimeout     - maximum wait time for Await.result()
   */
-case class GlueConfig(region: String, database: String, accessKey: String, secretKey: String, fetchSize: Int)
+case class GlueConfig(
+  host: String,
+  dbname: String,
+  username: String,
+  password: String,
+  maxFetchSize: Int,
+  segmentTotalNumber: Int,
+  maxWaitTimeout: Duration
+)
 
 /**
   * Datadog Config
