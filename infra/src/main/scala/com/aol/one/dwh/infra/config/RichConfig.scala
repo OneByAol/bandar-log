@@ -130,8 +130,8 @@ object RichConfig {
         glueConfig.getString("dbname"),
         glueConfig.getString("username"),
         glueConfig.getString("password"),
-        glueConfig.getInt("fetchSize"),
-        glueConfig.getInt("segmentTotalNumber"),
+        glueConfig.getInt("fetch.size"),
+        glueConfig.getInt("segment.total.number"),
         glueConfig.getInt("maxwait.timeout.seconds").seconds
       )
     }
