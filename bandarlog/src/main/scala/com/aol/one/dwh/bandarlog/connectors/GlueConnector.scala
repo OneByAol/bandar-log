@@ -1,6 +1,6 @@
 package com.aol.one.dwh.bandarlog.connectors
 
-import java.util.concurrent.{Callable, ExecutorService, Executors}
+import java.util.concurrent.Executors
 
 import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider}
 import com.aol.one.dwh.infra.config.GlueConfig
@@ -11,7 +11,7 @@ import com.simba.athena.amazonaws.services.glue.model.{GetPartitionsRequest, Get
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ListBuffer
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
   * Glue Connector
@@ -30,7 +30,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     .withCredentials(credentialsProvider)
     .build()
   private val segmentTotalNumber = config.segmentTotalNumber
-  private val pool: ExecutorService = Executors.newFixedThreadPool(segmentTotalNumber)
+  private val threadPool = Executors.newCachedThreadPool()
 
   private def createPartitionsRequest(config: GlueConfig): GetPartitionsRequest = {
     val request = new GetPartitionsRequest
@@ -78,14 +78,13 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
   /**
     * Calculates max value in Partition list in one segment of table
     *
-    * @param tableName     - table name
-    * @param columnName    - column name
-    * @param segmentNumber - number of segment
-    * @param request       - request for getting partitions
-    * @param segment       - segment - a non-overlapping region of a table's partitions
-    * @return              - max value in Partition list in one segment of table
+    * @param tableName  - table name
+    * @param columnName - column name
+    * @param request    - request for getting partitions
+    * @param segment    - segment - a non-overlapping region of a table's partitions
+    * @return           - max value in Partition list in one segment of table
     */
-  private def getMaxBatchIdPerSegment(tableName: String, columnName: String, segmentNumber: Int, request: GetPartitionsRequest, segment: Segment): Long = {
+  private def getMaxBatchIdPerSegment(tableName: String, columnName: String, request: GetPartitionsRequest, segment: Segment): Long = {
     request.setTableName(tableName)
     val fetchSize = config.maxFetchSize
     val firstFetch = glueClient.getPartitions(request.withSegment(segment).withMaxResults(fetchSize)).getPartitions.toList
@@ -93,7 +92,12 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     @tailrec
     def maxBatchIdPerRequest(token: String, previousMax: Long, request: GetPartitionsRequest, segment: Segment): (String, Long) = {
       val token = glueClient.getPartitions(request.withSegment(segment).withMaxResults(fetchSize)).getNextToken
-      val partitions = glueClient.getPartitions(request.withSegment(segment).withNextToken(token).withMaxResults(fetchSize)).getPartitions.toList
+      val partitions = glueClient.getPartitions(
+        request
+          .withSegment(segment)
+          .withNextToken(token)
+          .withMaxResults(fetchSize))
+        .getPartitions.toList
 
       if (partitions.nonEmpty) {
         val maxValue = temporaryMax(tableName, columnName, partitions)
@@ -118,24 +122,31 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     *
     * @param tableName  - table name
     * @param columnName - column name
-    * @return - max value in partition column (max batchId)
+    * @return           - max value in partition column (max batchId)
     */
   def getMaxBatchId(tableName: String, columnName: String): Long = {
-    val request: GetPartitionsRequest = createPartitionsRequest(config)
-    val segment: Segment = createSegment(segmentTotalNumber)
-    val listMax = new ListBuffer[Long]()
-    (0 until segmentTotalNumber) foreach { number =>
-      listMax += pool.submit(
-        new Callable[Long] {
-          override def call(): Long = {
-            segment.withSegmentNumber(number)
-            getMaxBatchIdPerSegment(tableName, columnName, number, request, segment)
-          }
-        }
-      ).get()
+
+    val request = new ThreadLocal[GetPartitionsRequest] {
+      override def initialValue(): GetPartitionsRequest = createPartitionsRequest(config)
     }
-    val maxValue = listMax.toList.max
-    logger.info(s"Max batchId in table $tableName is: $maxValue")
-    maxValue
+
+    val segment = new ThreadLocal[Segment] {
+      override def initialValue(): Segment = createSegment(segmentTotalNumber)
+    }
+
+    implicit val ec = ExecutionContext.fromExecutor(threadPool)
+
+    val futures = (0 until segmentTotalNumber) map { number =>
+      Future {
+        getMaxBatchIdPerSegment(
+          tableName,
+          columnName,
+          request.get(),
+          segment.get().withSegmentNumber(number))
+      }
+    }
+    val maxBatchId: Long = Await.result(Future.sequence(futures), config.maxWaitTimeout).max
+    logger.info(s"Max batchId in table $tableName is: $maxBatchId")
+    maxBatchId
   }
 }
