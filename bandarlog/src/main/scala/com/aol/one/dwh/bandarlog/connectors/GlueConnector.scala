@@ -1,3 +1,11 @@
+/*
+  ******************************************************************************
+  * Copyright 2018, Oath Inc.
+  * Licensed under the terms of the Apache Version 2.0 license.
+  * See LICENSE file in project root directory for terms.
+  ******************************************************************************
+*/
+
 package com.aol.one.dwh.bandarlog.connectors
 
 import java.util.concurrent.Executors
@@ -48,7 +56,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     * Fetches list of names of partition columns in table
     *
     * @param tableName - table name
-    * @return - list of names of partition columns
+    * @return          - list of names of partition columns
     */
   private def getPartitionColumns(tableName: String): List[String] = {
     val tableRequest = new GetTableRequest
@@ -58,12 +66,12 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
   }
 
   /**
-    * Calculates max value in Partition list
+    * Calculates max value in Partition list returned from a single request
     *
     * @param tableName   - table name
     * @param tableColumn - column name
     * @param partitions  - list of Partitions
-    * @return - max value in Partition list
+    * @return            - max value in Partition list
     */
   private def partialMax(tableName: String, tableColumn: String, partitions: List[Partition]): Long = {
     val columns = getPartitionColumns(tableName)
@@ -88,7 +96,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     * @param columnName - column name
     * @param request    - request for getting partitions
     * @param segment    - segment - a non-overlapping region of a table's partitions
-    * @return - max value in Partition list in one segment of table
+    * @return           - max value in Partition list in one segment of table
     */
   private def getMaxBatchIdPerSegment(tableName: String, columnName: String, request: GetPartitionsRequest, segment: Segment): Long = {
     request.setTableName(tableName)
@@ -128,7 +136,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     *
     * @param tableName  - table name
     * @param columnName - column name
-    * @return - max value in partition column (max batchId)
+    * @return           - max value in partition column (max batchId)
     */
   def getMaxBatchId(tableName: String, columnName: String): Long = {
 
