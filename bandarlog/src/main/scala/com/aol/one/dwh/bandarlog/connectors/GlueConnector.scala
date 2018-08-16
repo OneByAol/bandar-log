@@ -7,7 +7,7 @@ import com.aol.one.dwh.infra.config.GlueConfig
 import com.aol.one.dwh.infra.util.LogTrait
 import com.simba.athena.amazonaws.auth.BasicAWSCredentials
 import com.simba.athena.amazonaws.services.glue.AWSGlueClient
-import com.simba.athena.amazonaws.services.glue.model.{GetPartitionsRequest, GetTableRequest, Partition, Segment}
+import com.simba.athena.amazonaws.services.glue.model._
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
@@ -48,7 +48,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     * Fetches list of names of partition columns in table
     *
     * @param tableName - table name
-    * @return          - list of names of partition columns
+    * @return - list of names of partition columns
     */
   private def getPartitionColumns(tableName: String): List[String] = {
     val tableRequest = new GetTableRequest
@@ -62,17 +62,23 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     *
     * @param tableName   - table name
     * @param tableColumn - column name
-    * @param list        - list of Partitions
-    * @return            - max value in Partition list
+    * @param partitions  - list of Partitions
+    * @return - max value in Partition list
     */
-  private def temporaryMax(tableName: String, tableColumn: String, list: List[Partition]): Long = {
-    val columnNames = getPartitionColumns(tableName)
-    val batchIdValues = list.map(_.getValues)
-    batchIdValues
-      .flatMap(value => value.zip(columnNames))
+  private def partialMax(tableName: String, tableColumn: String, partitions: List[Partition]): Long = {
+    val columns = getPartitionColumns(tableName)
+    val values = partitions.map(_.getValues)
+
+    val columnsData = values
+      .flatMap(value => value.zip(columns))
       .filter { case (value, columnName) => columnName == tableColumn }
-      .map { case (value, columnName) => value.toLong }
-      .max
+
+    val max = columnsData match {
+      case Nil => throw new IllegalArgumentException(s"Column $tableColumn not found in table $tableName.")
+      case nonEmptyList: List[(String, String)] =>
+        nonEmptyList.map { case (value, columnName) => value.toLong }.max
+    }
+    max
   }
 
   /**
@@ -82,7 +88,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     * @param columnName - column name
     * @param request    - request for getting partitions
     * @param segment    - segment - a non-overlapping region of a table's partitions
-    * @return           - max value in Partition list in one segment of table
+    * @return - max value in Partition list in one segment of table
     */
   private def getMaxBatchIdPerSegment(tableName: String, columnName: String, request: GetPartitionsRequest, segment: Segment): Long = {
     request.setTableName(tableName)
@@ -100,7 +106,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
         .getPartitions.toList
 
       if (partitions.nonEmpty) {
-        val maxValue = temporaryMax(tableName, columnName, partitions)
+        val maxValue = partialMax(tableName, columnName, partitions)
         val result = previousMax.max(maxValue)
         maxBatchIdPerRequest(token, result, request, segment)
       } else {
@@ -109,7 +115,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     }
 
     if (firstFetch.nonEmpty) {
-      val firstMax = temporaryMax(tableName, columnName, firstFetch)
+      val firstMax = partialMax(tableName, columnName, firstFetch)
       val (_, max) = maxBatchIdPerRequest("", firstMax, request, segment)
       max
     } else {
@@ -122,7 +128,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     *
     * @param tableName  - table name
     * @param columnName - column name
-    * @return           - max value in partition column (max batchId)
+    * @return - max value in partition column (max batchId)
     */
   def getMaxBatchId(tableName: String, columnName: String): Long = {
 
