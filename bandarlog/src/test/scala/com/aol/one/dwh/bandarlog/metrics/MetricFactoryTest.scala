@@ -1,6 +1,5 @@
 package com.aol.one.dwh.bandarlog.metrics
 
-import com.aol.one.dwh.bandarlog.connectors.GlueConnector
 import com.aol.one.dwh.bandarlog.metrics.BaseMetrics._
 import com.aol.one.dwh.bandarlog.metrics.MetricFactoryTest._
 import com.aol.one.dwh.bandarlog.metrics.Metrics.REALTIME_LAG
@@ -105,11 +104,6 @@ class MetricFactoryTest extends FunSuite with MockitoSugar {
     val tags2 = List(Tag("out_table", "out_test_table"), Tag("out_connector", "test-vertica"))
     assertMetric(metricProvider2.metric, "realtime_lag", tags2)
     assert(metricProvider2.provider.isInstanceOf[SqlLagProvider])
-  }
-
-  test("create glue Metric & Provider for OUT metric id") {
-    val outConnector = ConnectorConfig("glue", "glue-config", "test-glue")
-    //TODO
   }
 
   private def mockConnectionPool() = {
