@@ -52,7 +52,7 @@ class SqlTimestampProviderTest extends FunSuite with MockitoSugar {
     assert(result.getValue.isEmpty)
   }
 
-  test("return zero if can't get timestamp value in glue connector") {
+  test("return zero if partition column does not have values") {
     when(glueConnector.getMaxBatchId(any(), any())).thenReturn(0)
 
     val result = glueTimestampProvider.provide()
