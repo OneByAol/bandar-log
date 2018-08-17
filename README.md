@@ -100,8 +100,8 @@ aws-glue-source-config {
   dbname = "database"                # database name
   access.key = "accesskey"           # access key provided by AWS account
   secret.key = "secretaccesskey"     # secret key provided by AWS account
-  fetch.size = 10                    # the maximum number of partitions to return in a single response.
-  segment.total.number = 10          # the total numer of segments - non-overlapping region of a table's partitions. Maximum possible value - 10.
+  fetch.size = 10                    # the maximum number of partitions to return in a single response
+  segment.total.number = 10          # the total nummer of segments - non-overlapping region of a table's partitions. Maximum possible value - 10
   maxwait.timeout.seconds = 60       # maximum wait time until all the parallel requests become completed
 }
 ```
@@ -111,7 +111,7 @@ aws-glue-source-config {
    - SQL
         - Vertica _(compatible with vertica driver 6.0.0)_
         - Presto _(compatible with presto driver 0.181)_
-        - AWS Glue Data Catalog (The source for Glue connector is the metadata table of data of interest).<br/>
+        - AWS Glue Data Catalog _(compatible and tested with athena driver 2.0.2, compatible with athena driver 2.0.5)_ <br/>
         `*` you can easily add new data source
 
 ### Bandarlog
