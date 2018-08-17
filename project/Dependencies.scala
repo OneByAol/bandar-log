@@ -23,7 +23,7 @@ object V {
   val slf4j               = "1.7.16"
   val scalatest           = "2.2.6"
   val mockito             = "1.10.19"
-  val athenaDriver        = "2.0.2"
+  val awsGlue             = "1.11.388"
 }
 
 object Dependencies {
@@ -34,7 +34,7 @@ object Dependencies {
   val consulClient          = "com.ecwid.consul"      % "consul-api"                   % V.consulClient
   val hikariPool            = "com.zaxxer"            % "HikariCP"                     % V.hikariPool
   val slf4j                 = "org.slf4j"             % "slf4j-api"                    % V.slf4j
-  val log4j                 = "org.slf4j"             % "slf4j-log4j12"                % V.slf4j
+  val log4j                 = "org.slf4j"             % "slf4j-log4j12slf"                % V.slf4j
   val scalaCache            = "com.github.cb372"      %% "scalacache-guava"            % V.scalaCache
   val scopt                 = "com.github.scopt"      %% "scopt"                       % V.scopt
   val sparkStreaming        = "org.apache.spark"      %% "spark-streaming"             % V.spark
@@ -43,5 +43,5 @@ object Dependencies {
   val scalaz                = "org.scalaz"            %% "scalaz-core"                 % V.scalaz
   val scalaTest             = "org.scalatest"         %% "scalatest"                   % V.scalatest     % Test
   val mockito               = "org.mockito"           % "mockito-core"                 % V.mockito       % Test
-  val athenaDriver          = "com.syncron.amazonaws" % "simba-athena-jdbc-driver"     % V.athenaDriver
+  val awsGlue               = "com.amazonaws"         % "aws-java-sdk-glue"            % V.awsGlue
 }
