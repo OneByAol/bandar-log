@@ -27,7 +27,7 @@ case class KafkaConfig(zookeeperQuorum: String, brokers: Option[String])
   * @param accessKey          - access key provided by AWS account
   * @param secretKey          - secret key provided by AWS account
   * @param maxFetchSize       - the maximum number of partitions to return in a single response
-  * @param segmentTotalNumber - total numer of segments in glue table, also sets the level of parallelism of computation (number of threads)
+  * @param segmentTotalNumber - total number of segments in glue table, also sets the level of parallelism of computation (number of threads)
   * @param maxWaitTimeout     - timeout to complete glue request
   */
 case class GlueConfig(
