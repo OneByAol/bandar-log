@@ -12,30 +12,29 @@ import com.aol.one.dwh.bandarlog.metrics.BaseMetrics.{IN, LAG, OUT}
 import com.aol.one.dwh.bandarlog.metrics.Metrics.REALTIME_LAG
 import com.aol.one.dwh.bandarlog.providers._
 import com.aol.one.dwh.infra.config.{ConnectorConfig, TableColumn, Tag}
-import com.aol.one.dwh.infra.sql.pool.ConnectionPoolHolder
-import com.typesafe.config.Config
 
-class MetricFactory(connectionPoolHolder: ConnectionPoolHolder, bandarlogConf: Config, provider: ProviderFactory) {
+class MetricFactory(provider: ProviderFactory) {
 
   def create(
-      metricId: String,
-      metricPrefix: String,
-      inConnector: ConnectorConfig,
-      outConnectors: Seq[ConnectorConfig],
-      inTable: TableColumn,
-      outTable: TableColumn): Seq[MetricProvider[Long]] = metricId match {
+    metricId: String,
+    metricPrefix: String,
+    inConnector: ConnectorConfig,
+    outConnectors: Seq[ConnectorConfig],
+    inTable: TableColumn,
+    outTable: TableColumn
+  ): Seq[MetricProvider[Long]] = metricId match {
 
     case IN =>
       val tags = List(Tag("in_table", inTable.table), Tag("in_connector", inConnector.tag))
       val inMetric = AtomicMetric[Long](metricPrefix, "in_timestamp", tags)
-      val inProvider = provider.getProvider(inConnector, inTable)
+      val inProvider = provider.create(inConnector, inTable)
       Seq(MetricProvider(inMetric, inProvider))
 
     case OUT =>
       outConnectors.map { outConnector =>
         val tags = List(Tag("out_table", outTable.table), Tag("out_connector", outConnector.tag))
         val outMetric = AtomicMetric[Long](metricPrefix, "out_timestamp", tags)
-        val outProvider = provider.getProvider(outConnector, outTable)
+        val outProvider = provider.create(outConnector, outTable)
         MetricProvider(outMetric, outProvider)
       }
 
