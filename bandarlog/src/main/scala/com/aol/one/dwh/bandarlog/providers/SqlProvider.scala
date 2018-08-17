@@ -32,6 +32,11 @@ class SqlTimestampProvider(connector: JdbcConnector, query: Query) extends Times
   }
 }
 
+/**
+  * Glue Timestamp Provider
+  *
+  * Provides timestamp metric by table, partition column and appropriate connector
+  */
 class GlueTimestampProvider(connector: GlueConnector, tableInfo: TableColumn) extends TimestampProvider {
 
   override def provide(): Value[Timestamp] = {
