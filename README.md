@@ -111,7 +111,7 @@ aws-glue-source-config {
    - SQL
         - Vertica _(compatible with vertica driver 6.0.0)_
         - Presto _(compatible with presto driver 0.181)_
-        - AWS Glue Data Catalog _(compatible and tested with athena driver 2.0.2, compatible with athena driver 2.0.5)_ <br/>
+        - AWS Glue Data Catalog _(compatible and tested with aws-java-sdk-glue 1.11.388)_ <br/>
         `*` you can easily add new data source
 
 ### Bandarlog
