@@ -19,21 +19,20 @@ import com.aol.one.dwh.infra.sql.pool.ConnectionPoolHolder
 
 class ProviderFactory(mainConfig: Config, connectionPoolHolder: ConnectionPoolHolder) {
 
-  def getProvider(connector: ConnectorConfig, table: TableColumn): TimestampProvider = {
+  def create(connector: ConnectorConfig, table: TableColumn): TimestampProvider = {
     connector.connectorType match {
 
       case VERTICA | PRESTO => {
         val query = MaxValuesQuery.get(connector.connectorType)(table)
         val connectionPool = connectionPoolHolder.get(connector)
-        val provider = new SqlTimestampProvider(JdbcConnector(connector.connectorType, connectionPool), query)
-        provider
+        new SqlTimestampProvider(JdbcConnector(connector.connectorType, connectionPool), query)
       }
 
-      case GLUE =>
+      case GLUE => {
         val glueConfig = mainConfig.getGlueConfig(connector.configId)
         val glueConnector = new GlueConnector(glueConfig)
-        val provider = new GlueTimestampProvider(glueConnector, table)
-        provider
+        new GlueTimestampProvider(glueConnector, table)
+      }
     }
   }
 }
