@@ -10,12 +10,11 @@ package com.aol.one.dwh.bandarlog.connectors
 
 import java.util.concurrent.Executors
 
-import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider}
+import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider, BasicAWSCredentials}
+import com.amazonaws.services.glue.AWSGlueClient
+import com.amazonaws.services.glue.model.{GetPartitionsRequest, GetTableRequest, Partition, Segment}
 import com.aol.one.dwh.infra.config.GlueConfig
 import com.aol.one.dwh.infra.util.LogTrait
-import com.simba.athena.amazonaws.auth.BasicAWSCredentials
-import com.simba.athena.amazonaws.services.glue.AWSGlueClient
-import com.simba.athena.amazonaws.services.glue.model._
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
@@ -46,7 +45,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     *
     * @param tableName  - table name
     * @param columnName - column name
-    * @return           - max value in partition column (max batchId)
+    * @return - max value in partition column (max batchId)
     */
   def getMaxBatchId(tableName: String, columnName: String): Long = {
     implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(threadPool)
@@ -81,7 +80,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     * Fetches list of names of partition columns in table
     *
     * @param tableName - table name
-    * @return          - list of names of partition columns
+    * @return - list of names of partition columns
     */
   private def getPartitionColumns(tableName: String): List[String] = {
     val tableRequest = new GetTableRequest
@@ -96,7 +95,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     * @param tableName   - table name
     * @param tableColumn - column name
     * @param partitions  - list of Partitions
-    * @return            - max value in Partition list
+    * @return - max value in Partition list
     */
   private def partialMax(tableName: String, tableColumn: String, partitions: List[Partition]): Long = {
     val columns = getPartitionColumns(tableName)
@@ -119,7 +118,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     * @param tableName     - table name
     * @param columnName    - column name
     * @param segmentNumber - index number of the segment
-    * @return              - max value in Partition list in one segment of table
+    * @return - max value in Partition list in one segment of table
     */
   private def getMaxBatchIdPerSegment(tableName: String, columnName: String, segmentNumber: Int): Long = {
     val request = createPartitionsRequest(config, tableName)
@@ -134,7 +133,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
           .withSegment(segment)
           .withNextToken(token)
           .withMaxResults(fetchSize))
-          .getPartitions.toList
+        .getPartitions.toList
 
       if (partitions.nonEmpty) {
         val maxValue = partialMax(tableName, columnName, partitions)
