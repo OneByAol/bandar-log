@@ -58,21 +58,21 @@ class GlueMetricFactoryTest extends FunSuite with MockitoSugar {
   test("create sql/glue Metric & Provider for LAG metric id") {
     mockConnectionPool()
     val inConnector = ConnectorConfig("presto", "presto_config_id", "test-presto")
-    val outConnector1 = ConnectorConfig("glue", "glue_config_id", "test-glue")
+    val outConnector = ConnectorConfig("glue", "glue_config_id", "test-glue")
 
-    val results = metricFactory.create(LAG, metricPrefix, inConnector, Seq(outConnector1), inTable, outTable)
+    val results = metricFactory.create(LAG, metricPrefix, inConnector, Seq(outConnector), inTable, outTable)
 
     assert(results.size == 1)
 
-    val metricProvider1 = results.head
+    val metricProvider = results.head
     val tags1 = List(
       Tag("in_table", "in_test_table"),
       Tag("in_connector", "test-presto"),
       Tag("out_table", "out_test_table"),
       Tag("out_connector", "test-glue")
     )
-    assertMetric(metricProvider1.metric, "lag", tags1)
-    assert(metricProvider1.provider.isInstanceOf[SqlLagProvider])
+    assertMetric(metricProvider.metric, "lag", tags1)
+    assert(metricProvider.provider.isInstanceOf[SqlLagProvider])
   }
 
   test("create glue Metric & Provider for REALTIME_LAG metric id") {
