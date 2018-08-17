@@ -41,7 +41,7 @@ lazy val `infra` = project.enablePlugins(CodeStylePlugin && ResolversPlugin).
             hikariPool,
             scalaArm,
             scalaz,
-            athenaDriver
+            awsGlue
         )
   )
 
