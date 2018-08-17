@@ -9,7 +9,7 @@
 package com.aol.one.dwh.bandarlog.metrics
 
 import com.aol.one.dwh.bandarlog.metrics.BaseMetrics._
-import com.aol.one.dwh.bandarlog.metrics.MetricFactoryTest._
+import com.aol.one.dwh.bandarlog.metrics.SqlMetricFactoryTest._
 import com.aol.one.dwh.bandarlog.metrics.Metrics.REALTIME_LAG
 import com.aol.one.dwh.bandarlog.providers.{ProviderFactory, SqlLagProvider, SqlTimestampProvider}
 import com.aol.one.dwh.infra.config._
@@ -20,19 +20,18 @@ import org.mockito.Mockito.when
 import org.scalatest.FunSuite
 import org.scalatest.mock.MockitoSugar
 
-object MetricFactoryTest {
+object SqlMetricFactoryTest {
   private val metricPrefix = "sql_prefix"
   private val inTable = TableColumn("in_test_table", "in_test_column")
   private val outTable = TableColumn("out_test_table", "out_test_column")
 }
 
-class MetricFactoryTest extends FunSuite with MockitoSugar {
+class SqlMetricFactoryTest extends FunSuite with MockitoSugar {
   private val connectorPoolHolder = mock[ConnectionPoolHolder]
   private val connectionPool = mock[HikariConnectionPool]
   private val mainConfig = mock[Config]
   private val providerFactory = new ProviderFactory(mainConfig, connectorPoolHolder)
-  private val bandarlogConf = mock[Config]
-  private val metricFactory = new MetricFactory(connectorPoolHolder, bandarlogConf, providerFactory)
+  private val metricFactory = new MetricFactory(providerFactory)
 
   test("create sql Metric & Provider for IN metric id") {
     mockConnectionPool()
@@ -112,6 +111,12 @@ class MetricFactoryTest extends FunSuite with MockitoSugar {
     val tags2 = List(Tag("out_table", "out_test_table"), Tag("out_connector", "test-vertica"))
     assertMetric(metricProvider2.metric, "realtime_lag", tags2)
     assert(metricProvider2.provider.isInstanceOf[SqlLagProvider])
+  }
+
+  test("throw exception in unknown metric case") {
+    intercept[IllegalArgumentException] {
+      metricFactory.create("UNKNOWN_METRIC", metricPrefix, None.orNull, Seq.empty, inTable, outTable)
+    }
   }
 
   private def mockConnectionPool() = {
