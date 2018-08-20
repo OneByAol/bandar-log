@@ -101,7 +101,7 @@ aws-glue-source-config {
   access.key = "accesskey"           # access key provided by AWS account
   secret.key = "secretaccesskey"     # secret key provided by AWS account
   fetch.size = 10                    # the maximum number of partitions to return in a single response
-  segment.total.number = 10          # the total nummer of segments - non-overlapping region of a table's partitions. Maximum possible value - 10
+  segment.total.number = 10          # the total number of segments - non-overlapping region of a table's partitions. Maximum possible value - 10
   maxwait.timeout.seconds = 60       # maximum wait time until all the parallel requests become completed
 }
 ```
