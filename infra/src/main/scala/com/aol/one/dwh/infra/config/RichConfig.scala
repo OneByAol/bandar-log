@@ -18,10 +18,10 @@ object RichConfig {
 
     def getOptionalString(path: String): Option[String] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
-        Some(underlying.getString(path))
-      } else {
-        None
-      }
+      Some(underlying.getString(path))
+    } else {
+      None
+    }
 
     def getOptionalInt(path: String): Option[Int] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
@@ -46,10 +46,10 @@ object RichConfig {
 
     def getOptionalStringList(path: String): Option[List[String]] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
-        Some(underlying.getStringList(path).toList)
-      } else {
-        None
-      }
+      Some(underlying.getStringList(path).toList)
+    } else {
+      None
+    }
 
     def getOptionalObjectList(path: String): Option[List[_ <: ConfigObject]] =
       if (underlying.hasPath(path) && !underlying.getIsNull(path)) {
