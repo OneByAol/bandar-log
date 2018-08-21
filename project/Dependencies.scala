@@ -34,7 +34,7 @@ object Dependencies {
   val consulClient          = "com.ecwid.consul"      % "consul-api"                   % V.consulClient
   val hikariPool            = "com.zaxxer"            % "HikariCP"                     % V.hikariPool
   val slf4j                 = "org.slf4j"             % "slf4j-api"                    % V.slf4j
-  val log4j                 = "org.slf4j"             % "slf4j-log4j12slf"                % V.slf4j
+  val log4j                 = "org.slf4j"             % "slf4j-log4j12"                % V.slf4j
   val scalaCache            = "com.github.cb372"      %% "scalacache-guava"            % V.scalaCache
   val scopt                 = "com.github.scopt"      %% "scopt"                       % V.scopt
   val sparkStreaming        = "org.apache.spark"      %% "spark-streaming"             % V.spark
