@@ -19,7 +19,7 @@ val `bandar-log` = project.in(file("."))
   )
   .settings(
     topLevelDirectory := None,
-    publish := false
+    publish / skip := false
   )
   .aggregate(
     `infra`,
