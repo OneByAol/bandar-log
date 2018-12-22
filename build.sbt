@@ -1,7 +1,9 @@
 import Dependencies._
 import sbt.Keys._
 
-version in ThisBuild := s"2.0.${sys.env("TRAVIS_BUILD_NUMBER")}"
+lazy val buildNumber = sys.env.getOrElse("TRAVIS_BUILD_NUMBER", "SNAPSHOT")
+version in ThisBuild := s"2.0.$buildNumber"
+
 scalaVersion in ThisBuild := "2.11.12"
 
 organization in ThisBuild := "com.aol.one.dwh"
