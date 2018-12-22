@@ -14,6 +14,7 @@ import sbt._
 import com.typesafe.sbt.packager.Keys.packageName
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.universal.UniversalDeployPlugin
+import Path.rebase
 
 object DockerSupportPlugin extends AutoPlugin {
 
@@ -27,7 +28,7 @@ object DockerSupportPlugin extends AutoPlugin {
     packageName := s"$organizationName/${packageName.value}",
     mappings in Universal ++= {
     val dir = baseDirectory.value / "scripts"
-    ((dir.*** --- dir) x relativeTo(dir)).map( el => el._1 -> ("bin/" + el._2))
+    (( dir * "*") pair rebase(dir, "bin/"))
   })
 
 }

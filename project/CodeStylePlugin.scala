@@ -7,6 +7,7 @@
 */
 
 import org.scalastyle.sbt.ScalastylePlugin._
+import org.scalastyle.sbt.ScalastylePlugin.autoImport._
 import sbt.Keys._
 import sbt._
 
@@ -20,15 +21,9 @@ object CodeStylePlugin extends AutoPlugin {
     // disabled java docs, we don't need check doc syntax and store java doc file
     sources in doc in Compile := List(),
 
-    // add arguments name to compiled classes(for spring autowiring)
-    javacOptions in(Compile, compile) ++= Seq("-g"),
-    scalacOptions in(Compile, compile) ++= Seq("-g:vars"),
-
     // by default set build as failed if scala check style errors found
-    scalastyleFailOnError in ThisBuild := true,
+    ThisBuild / scalastyleFailOnError := true,
 
-    // scala code coverage plugin
-    // coverageEnabled := true,
-    scalastyleConfig in Compile := configFile
+    Compile / scalastyleConfig := configFile
   )
 }
