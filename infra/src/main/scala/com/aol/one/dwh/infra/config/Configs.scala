@@ -93,7 +93,7 @@ case class Topic(id: String, values: Set[String], groupId: String)
 /**
   * Pair of Sql table and column
   */
-case class TableColumn(table: String, column: String)
+case class TableColumn(table: String, column: String, format: String)
 
 /**
   * Reporter Tag
