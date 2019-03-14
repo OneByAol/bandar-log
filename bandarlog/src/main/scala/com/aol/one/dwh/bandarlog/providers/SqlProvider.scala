@@ -10,14 +10,15 @@ package com.aol.one.dwh.bandarlog.providers
 
 import com.aol.one.dwh.bandarlog.connectors.{GlueConnector, JdbcConnector}
 import com.aol.one.dwh.bandarlog.metrics.{AtomicValue, Value}
-import com.aol.one.dwh.infra.sql.LongValueResultHandler
-import com.aol.one.dwh.infra.sql.Query
+import com.aol.one.dwh.infra.sql.{DateResultHandler, LongValueResultHandler, Query}
 import SqlProvider._
-import com.aol.one.dwh.infra.config.TableColumn
+import com.aol.one.dwh.infra.config.{Partition, TableColumn}
+import com.aol.one.dwh.infra.parser.FormatParser
 
 object SqlProvider {
   type Timestamp = Long
   type TimestampProvider = Provider[Timestamp]
+  type DateProvider =  Provider[String]
 }
 
 /**
@@ -29,6 +30,23 @@ class SqlTimestampProvider(connector: JdbcConnector, query: Query) extends Times
 
   override def provide(): Value[Timestamp] = {
     AtomicValue(connector.runQuery(query, new LongValueResultHandler))
+  }
+}
+
+class SqlDateProvider(connector: JdbcConnector, query: Query, format: String) extends TimestampProvider {
+  override def provide(): Value[Timestamp] = {
+    val maxPartitionValue = AtomicValue(connector.runQuery(query, new DateResultHandler))
+
+    val max =
+      for {
+        value <- maxPartitionValue.getValue
+        longValue = FormatParser.parse(value, format)
+        result <- longValue
+      } yield {
+        result
+      }
+
+    AtomicValue(max)
   }
 }
 
