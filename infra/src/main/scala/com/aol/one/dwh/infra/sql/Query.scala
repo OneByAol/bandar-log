@@ -8,8 +8,10 @@
 
 package com.aol.one.dwh.infra.sql
 
-import com.aol.one.dwh.infra.config.TableColumn
+import com.aol.one.dwh.infra.config.{Partition, TableColumn, TablePartition}
 import com.aol.one.dwh.infra.sql.pool.SqlSource._
+
+import scala.annotation.tailrec
 
 /**
   * Base Query interface
@@ -42,6 +44,14 @@ case class VerticaMaxValuesQuery(tableColumn: TableColumn) extends VerticaQuery 
 
 case class PrestoMaxValuesQuery(tableColumn: TableColumn) extends PrestoQuery {
   override def sql: String = s"SELECT MAX(${tableColumn.column}) AS ${tableColumn.column} FROM ${tableColumn.table}"
+
+  override def settings: Seq[Setting] = Seq(Setting("optimize_metadata_queries", "true"))
+}
+
+case class  PrestoMaxWhereValuesQuery(partition: Partition, table: String, partitionSpec: (String, String)) extends PrestoQuery {
+  val column = partition.column
+  val (partitionName, maxValue) = partitionSpec
+  override def sql: String = s"select max($column) from $table where $partitionName='$maxValue'"
 
   override def settings: Seq[Setting] = Seq(Setting("optimize_metadata_queries", "true"))
 }
