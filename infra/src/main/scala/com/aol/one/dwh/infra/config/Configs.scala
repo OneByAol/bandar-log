@@ -90,10 +90,22 @@ case class ReportConfig(prefix: String, interval: Int)
   */
 case class Topic(id: String, values: Set[String], groupId: String)
 
+sealed trait Table
+
 /**
   * Pair of Sql table and column
   */
-case class TableColumn(table: String, column: String, format: String)
+case class TableColumn(table: String, column: String) extends Table
+
+/**
+  * Pair of Sql table and partition
+  */
+
+case class TablePartition(table: String, partitions: List[Partition])  extends Table
+
+case class Partition(column: String, format: String)
+
+
 
 /**
   * Reporter Tag
