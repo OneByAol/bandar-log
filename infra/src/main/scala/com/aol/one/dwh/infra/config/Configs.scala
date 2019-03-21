@@ -90,22 +90,30 @@ case class ReportConfig(prefix: String, interval: Int)
   */
 case class Topic(id: String, values: Set[String], groupId: String)
 
-sealed trait Table
+trait Table {
+  val tableName: String
+  val columns: List[String]
+  val formats: List[String]
+}
 
 /**
   * Pair of Sql table and column
   */
-case class TableColumn(table: String, column: String) extends Table
+case class NumericColumn(tableName: String, columnName: String) extends Table {
+  override val columns: List[String] = List(columnName)
+  override val formats: List[String] = Nil
+}
 
 /**
   * Pair of Sql table and partition
   */
 
-case class TablePartition(table: String, partitions: List[Partition])  extends Table
+case class DateColumn(tableName: String, partitions: List[Partition])  extends Table {
+  override val columns: List[String] = partitions.map(_.column)
+  override val formats = partitions.map(_.format)
+}
 
 case class Partition(column: String, format: String)
-
-
 
 /**
   * Reporter Tag
