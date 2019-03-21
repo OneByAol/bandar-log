@@ -11,7 +11,7 @@ package com.aol.one.dwh.bandarlog.providers
 import com.aol.one.dwh.bandarlog.connectors.{GlueConnector, JdbcConnector}
 import com.aol.one.dwh.bandarlog.metrics.{AtomicValue, Value}
 import com.aol.one.dwh.bandarlog.providers.SqlProvider._
-import com.aol.one.dwh.infra.config.{Table, TableColumn, TablePartition}
+import com.aol.one.dwh.infra.config.{Table, NumericColumn, DateColumn}
 import com.aol.one.dwh.infra.parser.StringToTimestampParser
 import com.aol.one.dwh.infra.sql.{ListStringResultHandler, LongValueResultHandler, Query}
 
@@ -29,9 +29,9 @@ class SqlTimestampProvider(connector: JdbcConnector, query: Query, table: Table)
 
   override def provide(): Value[Timestamp] = {
     table match {
-      case _: TableColumn => AtomicValue(connector.runQuery(query, new LongValueResultHandler))
+      case _: NumericColumn => AtomicValue(connector.runQuery(query, new LongValueResultHandler))
 
-      case _: TablePartition =>
+      case _: DateColumn =>
         val partitions = table.columns
         val numberOfColumns = partitions.length
         val format = table.formats.mkString(":")
@@ -57,7 +57,7 @@ class SqlTimestampProvider(connector: JdbcConnector, query: Query, table: Table)
   class GlueTimestampProvider(connector: GlueConnector, tableInfo: Table) extends TimestampProvider {
 
     override def provide(): Value[Timestamp] = {
-      AtomicValue(Option(connector.getMaxBatchId(tableInfo.table, tableInfo.columns.head)))
+      AtomicValue(Option(connector.getMaxBatchId(tableInfo.tableName, tableInfo.columns.head)))
     }
   }
 
