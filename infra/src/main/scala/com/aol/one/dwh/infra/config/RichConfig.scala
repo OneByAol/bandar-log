@@ -8,6 +8,7 @@
 
 package com.aol.one.dwh.infra.config
 
+import com.aol.one.dwh.infra.parser.ColumnParser
 import com.typesafe.config.{Config, ConfigObject}
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
@@ -194,12 +195,23 @@ object RichConfig {
       }
     }
 
-    def getTables: Seq[(TableColumn, TableColumn)] = {
+    def getTables: Seq[(Table, Table)] = {
       underlying.getObjectList("tables").map { obj =>
-        val fromTable = obj.toConfig.getOptionalString("in-table").map(_.split(":")).getOrElse(Array("", ""))
-        val toTable = obj.toConfig.getOptionalString("out-table").map(_.split(":")).getOrElse(Array("", ""))
+        val withFormat = obj.toConfig.getOptionalBoolean("withFormat").getOrElse(false)
 
-        (TableColumn(fromTable(0), fromTable(1)), TableColumn(toTable(0), toTable(1)))
+        if (withFormat) {
+          val fromTable = obj.toConfig.getOptionalString("in-table").map(_.split(":")).getOrElse(Array("", ""))
+          val toTable = obj.toConfig.getOptionalString("out-table").map(_.split(":")).getOrElse(Array("", ""))
+
+          (NumericColumn(fromTable(0), fromTable(1)), NumericColumn(toTable(0), toTable(1)))
+        } else {
+          val fromTable = obj.toConfig.getOptionalString("in-table").getOrElse("")
+          val fromColumns = obj.toConfig.getOptionalStringList("in-column").map(ColumnParser.parseList(_)).getOrElse(Nil)
+          val toTable = obj.toConfig.getOptionalString("out-table").getOrElse("")
+          val toColumns = obj.toConfig.getOptionalStringList("out-column").map(ColumnParser.parseList(_)).getOrElse(Nil)
+
+          (DateColumn(fromTable, fromColumns), DateColumn(toTable, toColumns))
+        }
       }
     }
 
@@ -212,5 +224,4 @@ object RichConfig {
       }
     }
   }
-
 }
