@@ -8,10 +8,8 @@
 
 package com.aol.one.dwh.infra.sql
 
-import com.aol.one.dwh.infra.config.{Partition, TableColumn, TablePartition}
+import com.aol.one.dwh.infra.config.{Table, TableColumn, TablePartition}
 import com.aol.one.dwh.infra.sql.pool.SqlSource._
-
-import scala.annotation.tailrec
 
 /**
   * Base Query interface
@@ -36,31 +34,33 @@ trait VerticaQuery extends Query {
   override def source: String = VERTICA
 }
 
-case class VerticaMaxValuesQuery(tableColumn: TableColumn) extends VerticaQuery {
-  override def sql: String = s"SELECT MAX(${tableColumn.column}) AS ${tableColumn.column} FROM ${tableColumn.table}"
+case class VerticaValuesQuery(table: Table) extends VerticaQuery {
+  override def sql: String = {
+    table match {
+      case _: TableColumn => s"SELECT MAX(${table.columns.head}) AS ${table.columns.head} FROM ${table.table}"
+      case _: TablePartition => s"SELECT ${table.columns.mkString(", ")} FROM ${table.table}"
+    }
+  }
 
   override def settings: Seq[Setting] = Seq.empty
 }
 
-case class PrestoMaxValuesQuery(tableColumn: TableColumn) extends PrestoQuery {
-  override def sql: String = s"SELECT MAX(${tableColumn.column}) AS ${tableColumn.column} FROM ${tableColumn.table}"
-
-  override def settings: Seq[Setting] = Seq(Setting("optimize_metadata_queries", "true"))
-}
-
-case class  PrestoMaxWhereValuesQuery(partition: Partition, table: String, partitionSpec: (String, String)) extends PrestoQuery {
-  val column = partition.column
-  val (partitionName, maxValue) = partitionSpec
-  override def sql: String = s"select max($column) from $table where $partitionName='$maxValue'"
+case class PrestoValuesQuery(table: Table) extends PrestoQuery {
+  override def sql: String = {
+    table match {
+      case _: TableColumn => s"SELECT MAX(${table.columns.head}) AS ${table.columns.head} FROM ${table.table}"
+      case _: TablePartition => s"SELECT ${table.columns.mkString(", ")} FROM ${table.table}"
+    }
+  }
 
   override def settings: Seq[Setting] = Seq(Setting("optimize_metadata_queries", "true"))
 }
 
 object MaxValuesQuery {
 
-  def get(source: String): TableColumn => Query = source match {
-    case PRESTO => PrestoMaxValuesQuery
-    case VERTICA => VerticaMaxValuesQuery
+  def get(source: String): Table => Query = source match {
+    case PRESTO => PrestoValuesQuery
+    case VERTICA => VerticaValuesQuery
     case s => throw new IllegalArgumentException(s"Can't get query for source:[$s]")
   }
 }
