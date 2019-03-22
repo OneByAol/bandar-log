@@ -9,6 +9,7 @@
 package com.aol.one.dwh.bandarlog.providers
 
 import com.aol.one.dwh.bandarlog.connectors.JdbcConnector
+import com.aol.one.dwh.infra.config.NumericColumn
 import com.aol.one.dwh.infra.sql.Query
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
@@ -20,7 +21,8 @@ class SqlTimestampProviderTest extends FunSuite with MockitoSugar {
 
   private val query = mock[Query]
   private val jdbcConnector = mock[JdbcConnector]
-  private val sqlTimestampProvider = new SqlTimestampProvider(jdbcConnector, query)
+  private val table = mock[NumericColumn]
+  private val sqlTimestampProvider = new SqlTimestampProvider(jdbcConnector, query, table)
 
   test("check timestamp value by connector and query") {
     val resultTimestamp = Some(1234567890L)

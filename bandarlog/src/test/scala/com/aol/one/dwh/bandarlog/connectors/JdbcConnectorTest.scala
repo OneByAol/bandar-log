@@ -10,10 +10,10 @@ package com.aol.one.dwh.bandarlog.connectors
 
 import java.sql.{Connection, DatabaseMetaData, ResultSet, Statement}
 
-import com.aol.one.dwh.infra.config.TableColumn
+import com.aol.one.dwh.infra.config.NumericColumn
 import com.aol.one.dwh.infra.sql.Setting
 import com.aol.one.dwh.infra.sql.pool.HikariConnectionPool
-import com.aol.one.dwh.infra.sql.VerticaMaxValuesQuery
+import com.aol.one.dwh.infra.sql.VerticaValuesQuery
 import org.apache.commons.dbutils.ResultSetHandler
 import org.mockito.Mockito.when
 import org.scalatest.FunSuite
@@ -31,7 +31,7 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
 
   test("check run query result") {
     val resultValue = 100L
-    val query = VerticaMaxValuesQuery(TableColumn("table", "column"))
+    val query = VerticaValuesQuery(NumericColumn("table", "column"))
     when(connectionPool.getConnection).thenReturn(connection)
     when(connectionPool.getName).thenReturn("connection_pool_name")
     when(connection.createStatement()).thenReturn(statement)

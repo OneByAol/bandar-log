@@ -8,7 +8,7 @@
 
 package com.aol.one.dwh.bandarlog.connectors
 
-import com.aol.one.dwh.infra.config.GlueConfig
+import com.aol.one.dwh.infra.config.{GlueConfig, NumericColumn}
 import org.mockito.Mockito.when
 import org.scalatest.FunSuite
 import org.scalatest.mock.MockitoSugar
@@ -20,10 +20,10 @@ class GlueConnectorTest extends FunSuite with MockitoSugar {
 
   test("Check max batchId from glue metadata tables") {
     val resultValue = 100L
+    val table = NumericColumn("table", "column")
+    when(glueConnector.getMaxPartitionValue(table)).thenReturn(resultValue)
 
-    when(glueConnector.getMaxBatchId("table", "column")).thenReturn(resultValue)
-
-    val result = glueConnector.getMaxBatchId("table", "column")
+    val result = glueConnector.getMaxPartitionValue(table)
     assert(result == resultValue)
   }
 }
