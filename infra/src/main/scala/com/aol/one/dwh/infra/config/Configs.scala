@@ -105,10 +105,9 @@ case class NumericColumn(tableName: String, columnName: String) extends Table {
 }
 
 /**
-  * Pair of Sql table and partition
+  * Pair of Sql table and partitions
   */
-
-case class DateColumn(tableName: String, partitions: List[Partition])  extends Table {
+case class NonnumericColumn(tableName: String, partitions: List[Partition])  extends Table {
   override val columns: List[String] = partitions.map(_.column)
   override val formats = partitions.map(_.format)
 }

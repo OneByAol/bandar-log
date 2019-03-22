@@ -8,7 +8,7 @@
 
 package com.aol.one.dwh.infra.sql
 
-import com.aol.one.dwh.infra.config.{Table, NumericColumn, DateColumn}
+import com.aol.one.dwh.infra.config.{Table, NumericColumn, NonnumericColumn}
 import com.aol.one.dwh.infra.sql.pool.SqlSource._
 
 /**
@@ -38,7 +38,7 @@ case class VerticaValuesQuery(table: Table) extends VerticaQuery {
   override def sql: String = {
     table match {
       case _: NumericColumn => s"SELECT MAX(${table.columns.head}) AS ${table.columns.head} FROM ${table.tableName}"
-      case _: DateColumn => s"SELECT ${table.columns.mkString(", ")} FROM ${table.tableName}"
+      case _: NonnumericColumn => s"SELECT ${table.columns.mkString(", ")} FROM ${table.tableName}"
     }
   }
 
@@ -49,7 +49,7 @@ case class PrestoValuesQuery(table: Table) extends PrestoQuery {
   override def sql: String = {
     table match {
       case _: NumericColumn => s"SELECT MAX(${table.columns.head}) AS ${table.columns.head} FROM ${table.tableName}"
-      case _: DateColumn => s"SELECT ${table.columns.mkString(", ")} FROM ${table.tableName}"
+      case _: NonnumericColumn => s"SELECT ${table.columns.mkString(", ")} FROM ${table.tableName}"
     }
   }
 
