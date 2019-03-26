@@ -4,7 +4,7 @@ import java.sql.ResultSet
 
 import org.apache.commons.dbutils.ResultSetHandler
 
-class ListStringResultHandler(numberOfPartitions: Int, format: String) extends ResultSetHandler[Option[List[String]]] {
+class ListStringResultHandler(numberOfPartitions: Int) extends ResultSetHandler[Option[List[String]]] {
 
   override def handle(resultSet: ResultSet): Option[List[String]] = {
 
