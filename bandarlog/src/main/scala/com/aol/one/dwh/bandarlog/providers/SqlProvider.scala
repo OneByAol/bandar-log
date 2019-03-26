@@ -11,7 +11,8 @@ package com.aol.one.dwh.bandarlog.providers
 import com.aol.one.dwh.bandarlog.connectors.{GlueConnector, JdbcConnector}
 import com.aol.one.dwh.bandarlog.metrics.{AtomicValue, Value}
 import com.aol.one.dwh.bandarlog.providers.SqlProvider._
-import com.aol.one.dwh.infra.config.{Table, NumericColumn, NonnumericColumn}
+import com.aol.one.dwh.infra.config.{NonnumericColumn, NumericColumn, Table}
+import com.aol.one.dwh.infra.parser.StringToTimestampParser
 import com.aol.one.dwh.infra.sql.{ListStringResultHandler, LongValueResultHandler, Query}
 
 object SqlProvider {
@@ -27,6 +28,7 @@ object SqlProvider {
 class SqlTimestampProvider(connector: JdbcConnector, query: Query, table: Table) extends TimestampProvider {
 
   override def provide(): Value[Timestamp] = {
+
     table match {
       case _: NumericColumn => AtomicValue(connector.runQuery(query, new LongValueResultHandler))
 
@@ -35,7 +37,17 @@ class SqlTimestampProvider(connector: JdbcConnector, query: Query, table: Table)
         val numberOfColumns = partitions.length
         val format = table.formats.mkString(":")
 
-        AtomicValue(connector.runQuery(query, new ListStringResultHandler(numberOfColumns, format)))
+        val queryResult = AtomicValue(connector.runQuery(query, new ListStringResultHandler(numberOfColumns)))
+
+        val maxPartitionsValue = for {
+          partitionValues <- queryResult.getValue
+        } yield {
+          partitionValues
+            .map(value => StringToTimestampParser.parse(value, format))
+            .map(_.getOrElse(0L))
+            .max
+        }
+        AtomicValue(maxPartitionsValue)
     }
   }
 }
