@@ -90,7 +90,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
   }
 
   /**
-    * Calculates max value in Partition list returned from a single request
+    * Calculates max value in numeric Partition list returned from a single request
     *
     * @param tableName   - table name
     * @param tableColumn - column name
@@ -112,24 +112,33 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     }
   }
 
+  /**
+    * Calculates max value in nonnumeric Partition list returned from a single request
+    * @param tableName    - table name
+    * @param columnNames  - column names
+    * @param formats      - format for parsing date values in partitions
+    * @param partitions   - list of Partitions
+    * @return             - max value in Partition list
+    */
   private def partialNonnumericMax(tableName: String, columnNames: List[String], formats: List[String], partitions: List[Partition]): Long = {
     val allPartitions = getPartitionColumns(tableName)
     val values = partitions.map(_.getValues)
     val format = formats.mkString(":")
 
     val partitionsData = values
-                      .map(value => allPartitions.zip(value).toMap)
+      .map(value => allPartitions.zip(value).toMap)
 
-    val filteredPartitionsData = partitionsData.
-                              map(data => filterPartitions(columnNames, data, tableName))
+    val filteredPartitionsData = partitionsData
+      .map(data => filterPartitions(columnNames, data, tableName))
 
-    val jointPartitiosValues = filteredPartitionsData.map(_.values.mkString(":"))
+    val jointPartitionsValues = filteredPartitionsData.map(_.values.mkString(":"))
     val formattedValues = for {
-      value <- jointPartitiosValues
+      value <- jointPartitionsValues
       longValue = StringToTimestampParser.parse(value, format)
     } yield {
       longValue
     }
+
     formattedValues.map(_.getOrElse(0L)).max
 
   }
