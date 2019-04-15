@@ -13,7 +13,7 @@ import java.util.concurrent.Executors
 import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider, BasicAWSCredentials}
 import com.amazonaws.services.glue.AWSGlueClient
 import com.amazonaws.services.glue.model.{GetPartitionsRequest, GetTableRequest, Partition, Segment}
-import com.aol.one.dwh.infra.config.{GlueConfig, NonnumericColumn, NumericColumn, Table}
+import com.aol.one.dwh.infra.config.{GlueConfig, DatetimeColumn, NumericColumn, Table}
 import com.aol.one.dwh.infra.parser.StringToTimestampParser
 import com.aol.one.dwh.infra.util.LogTrait
 
@@ -59,7 +59,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
       }
     }
     val maxValue: Long = Await.result(Future.sequence(futures), config.maxWaitTimeout).max
-    logger.info(s"Max value in partition(s) [${table.columns.mkString(",")}] in table ${table.tableName} is: $maxValue")
+    logger.info(s"Max value in table ${table.tableName} is: $maxValue")
     maxValue
   }
 
@@ -174,8 +174,9 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
 
       if (partitions.nonEmpty) {
         val maxValue = table match {
-          case _: NumericColumn => partialNumericMax(table.tableName, table.columns.head, partitions)
-          case _: NonnumericColumn => partialNonnumericMax(table.tableName, table.columns, table.formats, partitions)
+          case numericTable: NumericColumn => partialNumericMax(table.tableName, numericTable.columnName, partitions)
+          case datetimeTable: DatetimeColumn =>
+            partialNonnumericMax(table.tableName, datetimeTable.partitions.map(_.column), datetimeTable.partitions.map(_.format), partitions)
         }
         val result = previousMax.max(maxValue)
         maxBatchIdPerRequest(token, result, request, segment)
@@ -186,8 +187,9 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
 
     if (firstFetch.nonEmpty) {
       val firstMax = table match {
-        case _: NumericColumn => partialNumericMax(table.tableName, table.columns.head, firstFetch)
-        case _: NonnumericColumn => partialNonnumericMax(table.tableName, table.columns, table.formats, firstFetch)
+        case numericTable: NumericColumn => partialNumericMax(table.tableName, numericTable.columnName, firstFetch)
+        case datetimeTable: DatetimeColumn =>
+          partialNonnumericMax(table.tableName, datetimeTable.partitions.map(_.column), datetimeTable.partitions.map(_.format), firstFetch)
       }
       val (_, max) = maxBatchIdPerRequest("", firstMax, request, segment)
       max
