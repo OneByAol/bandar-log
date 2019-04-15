@@ -11,9 +11,10 @@ package com.aol.one.dwh.bandarlog.providers
 import com.aol.one.dwh.bandarlog.connectors.{GlueConnector, JdbcConnector}
 import com.aol.one.dwh.bandarlog.metrics.{AtomicValue, Value}
 import com.aol.one.dwh.bandarlog.providers.SqlProvider._
-import com.aol.one.dwh.infra.config.{NonnumericColumn, NumericColumn, Table}
+import com.aol.one.dwh.infra.config.{DatetimeColumn, NumericColumn, Table}
 import com.aol.one.dwh.infra.parser.StringToTimestampParser
 import com.aol.one.dwh.infra.sql.{ListStringResultHandler, LongValueResultHandler, Query}
+import com.aol.one.dwh.infra.util.LogTrait
 
 object SqlProvider {
   type Timestamp = Long
@@ -25,28 +26,24 @@ object SqlProvider {
   *
   * Provides timestamp metric by query and appropriate connector
   */
-class SqlTimestampProvider(connector: JdbcConnector, query: Query, table: Table) extends TimestampProvider {
+class SqlTimestampProvider(connector: JdbcConnector, query: Query, table: Table) extends TimestampProvider with LogTrait{
 
   override def provide(): Value[Timestamp] = {
 
     table match {
-      case _: NumericColumn => AtomicValue(connector.runQuery(query, new LongValueResultHandler))
+      case numericTable: NumericColumn => AtomicValue(connector.runQuery(query, new LongValueResultHandler))
 
-      case _: NonnumericColumn =>
-        val partitions = table.columns
-        val numberOfColumns = partitions.length
-        val format = table.formats.mkString(":")
-
+      case datetimeTable: DatetimeColumn =>
+        val columns = datetimeTable.partitions
+        val numberOfColumns = columns.length
+        val format = columns.map(_.format).mkString(":")
         val queryResult = AtomicValue(connector.runQuery(query, new ListStringResultHandler(numberOfColumns)))
 
-        val maxPartitionsValue = for {
-          partitionValues <- queryResult.getValue
-        } yield {
-          partitionValues
-            .map(value => StringToTimestampParser.parse(value, format))
-            .map(_.getOrElse(0L))
+        val maxPartitionsValue = queryResult.getValue.map{ partitionValues => {
+          partitionValues.flatMap(value => StringToTimestampParser.parse(value, format))
             .max
-        }
+        }}
+
         AtomicValue(maxPartitionsValue)
     }
   }
