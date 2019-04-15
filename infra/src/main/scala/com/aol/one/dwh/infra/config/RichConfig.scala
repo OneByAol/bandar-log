@@ -199,18 +199,18 @@ object RichConfig {
       underlying.getObjectList("tables").map { obj =>
         val withFormat = obj.toConfig.getOptionalBoolean("withFormat").getOrElse(false)
 
-        if (!withFormat) {
-          val fromTable = obj.toConfig.getOptionalString("in-table").map(_.split(":")).getOrElse(Array("", ""))
-          val toTable = obj.toConfig.getOptionalString("out-table").map(_.split(":")).getOrElse(Array("", ""))
-
-          (NumericColumn(fromTable(0), fromTable(1)), NumericColumn(toTable(0), toTable(1)))
-        } else {
+        if (withFormat) {
           val fromTable = obj.toConfig.getOptionalString("in-table").getOrElse("")
           val fromColumns = obj.toConfig.getOptionalStringList("in-columns").map(ColumnParser.parseList).getOrElse(Nil)
           val toTable = obj.toConfig.getOptionalString("out-table").getOrElse("")
           val toColumns = obj.toConfig.getOptionalStringList("out-columns").map(ColumnParser.parseList).getOrElse(Nil)
 
-          (NonnumericColumn(fromTable, fromColumns), NonnumericColumn(toTable, toColumns))
+          (DatetimeColumn(fromTable, fromColumns), DatetimeColumn(toTable, toColumns))
+        } else {
+          val fromTable = obj.toConfig.getOptionalString("in-table").map(_.split(":")).getOrElse(Array("", ""))
+          val toTable = obj.toConfig.getOptionalString("out-table").map(_.split(":")).getOrElse(Array("", ""))
+
+          (NumericColumn(fromTable(0), fromTable(1)), NumericColumn(toTable(0), toTable(1)))
         }
       }
     }
