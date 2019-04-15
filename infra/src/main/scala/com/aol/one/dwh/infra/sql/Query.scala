@@ -8,7 +8,7 @@
 
 package com.aol.one.dwh.infra.sql
 
-import com.aol.one.dwh.infra.config.{Table, NumericColumn, NonnumericColumn}
+import com.aol.one.dwh.infra.config.{Table, NumericColumn, DatetimeColumn}
 import com.aol.one.dwh.infra.sql.pool.SqlSource._
 
 /**
@@ -37,8 +37,10 @@ trait VerticaQuery extends Query {
 case class VerticaValuesQuery(table: Table) extends VerticaQuery {
   override def sql: String = {
     table match {
-      case _: NumericColumn => s"SELECT MAX(${table.columns.head}) AS ${table.columns.head} FROM ${table.tableName}"
-      case _: NonnumericColumn => s"SELECT ${table.columns.mkString(", ")} FROM ${table.tableName}"
+      case numericTable: NumericColumn => s"SELECT MAX(${numericTable.columnName}) AS ${numericTable.columnName} FROM ${table.tableName}"
+      case datetimeTable: DatetimeColumn =>
+        val columns = datetimeTable.partitions.map(_.column)
+        s"SELECT ${columns.mkString(", ")} FROM ${table.tableName}"
     }
   }
 
@@ -48,8 +50,10 @@ case class VerticaValuesQuery(table: Table) extends VerticaQuery {
 case class PrestoValuesQuery(table: Table) extends PrestoQuery {
   override def sql: String = {
     table match {
-      case _: NumericColumn => s"SELECT MAX(${table.columns.head}) AS ${table.columns.head} FROM ${table.tableName}"
-      case _: NonnumericColumn => s"SELECT ${table.columns.mkString(", ")} FROM ${table.tableName}"
+      case numericTable: NumericColumn => s"SELECT MAX(${numericTable.columnName}) AS ${numericTable.columnName} FROM ${table.tableName}"
+      case datetimeTable: DatetimeColumn =>
+        val columns = datetimeTable.partitions.map(_.column)
+        s"SELECT ${columns.mkString(", ")} FROM ${table.tableName}"
     }
   }
 
