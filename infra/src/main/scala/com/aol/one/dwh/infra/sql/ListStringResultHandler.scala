@@ -2,9 +2,10 @@ package com.aol.one.dwh.infra.sql
 
 import java.sql.ResultSet
 
+import com.aol.one.dwh.infra.util.LogTrait
 import org.apache.commons.dbutils.ResultSetHandler
 
-class ListStringResultHandler(numberOfPartitions: Int) extends ResultSetHandler[Option[List[String]]] {
+class ListStringResultHandler(numberOfPartitions: Int) extends ResultSetHandler[Option[List[String]]] with LogTrait {
 
   override def handle(resultSet: ResultSet): Option[List[String]] = {
 
@@ -17,12 +18,7 @@ class ListStringResultHandler(numberOfPartitions: Int) extends ResultSetHandler[
   }
 
   private def getColumnValues(numberOfPartitions: Int, resultSet: ResultSet): String = {
-    val values = for {
-      index <- 1 to numberOfPartitions
-    } yield {
-      resultSet.getString(index)
-    }
-    values.toList.mkString(":")
+    (1 to numberOfPartitions).map( index => resultSet.getString(index)).toList.mkString(":")
   }
 
 }
