@@ -1,7 +1,5 @@
 package com.aol.one.dwh.bandarlog
 
-import java.text.{DateFormat, SimpleDateFormat}
-
 import com.aol.one.dwh.infra.parser.StringToTimestampParser
 import org.scalatest.FunSuite
 
