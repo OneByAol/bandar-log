@@ -1,6 +1,7 @@
 package com.aol.one.dwh.infra.parser
 
 import java.text.{DateFormat, SimpleDateFormat}
+import java.util.TimeZone
 
 import com.aol.one.dwh.infra.util.{ExceptionPrinter, LogTrait}
 
@@ -13,6 +14,8 @@ object StringToTimestampParser extends LogTrait with ExceptionPrinter {
 
     Try {
       val dateFormat: DateFormat = new SimpleDateFormat(format)
+      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"))
+
       val date = dateFormat.parse(value)
       date.getTime
     }.recoverWith {
