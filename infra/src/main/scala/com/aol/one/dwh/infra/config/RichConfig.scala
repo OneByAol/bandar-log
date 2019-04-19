@@ -197,7 +197,7 @@ object RichConfig {
 
     def getTables: Seq[(Table, Table)] = {
       underlying.getObjectList("tables").map { obj =>
-        val withFormat = obj.toConfig.getOptionalBoolean("with-Format").getOrElse(false)
+        val withFormat = obj.toConfig.getOptionalBoolean("with-format").getOrElse(false)
 
         if (withFormat) {
           val fromTable = obj.toConfig.getOptionalString("in-table").getOrElse("")
