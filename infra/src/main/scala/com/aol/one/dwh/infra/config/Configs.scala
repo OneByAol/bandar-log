@@ -95,12 +95,12 @@ trait Table {
 }
 
 /**
-  * Pair of Sql table and column
+  * Pair of Sql table and numeric column (for example, "batch_id")
   */
 case class NumericColumn(tableName: String, columnName: String) extends Table
 
 /**
-  * Pair of Sql table and partitions
+  * Pair of Sql table and partition columns
   */
 case class DatetimeColumn(tableName: String, partitions: List[Partition])  extends Table
 
