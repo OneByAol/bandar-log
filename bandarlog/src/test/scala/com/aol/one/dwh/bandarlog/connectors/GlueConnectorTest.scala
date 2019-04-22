@@ -7,7 +7,7 @@
 */
 
 package com.aol.one.dwh.bandarlog.connectors
-import com.aol.one.dwh.infra.config.{DatetimeColumn, GlueConfig, NumericColumn, Partition}
+import com.aol.one.dwh.infra.config._
 import org.mockito.Mockito.when
 import org.scalatest.FunSuite
 import org.scalatest.mock.MockitoSugar
@@ -25,15 +25,18 @@ class GlueConnectorTest extends FunSuite with MockitoSugar {
     when(glueConnector.getMaxPartitionValue(numericTable)).thenReturn(resultValue)
 
     val result = glueConnector.getMaxPartitionValue(numericTable)
+
     assert(result == resultValue)
   }
 
   test("Check max date partitions' value from glue metadata table") {
     val resultValue = 15681377656L
-    val datetimeTable = DatetimeColumn("table", List(Partition("year", "yyyy"), Partition("month", "MM"), Partition("day", "dd")))
+    val partitions = List(DatetimePatition("year", "yyyy"), DatetimePatition("month", "MM"), DatetimePatition("day", "dd"))
+    val datetimeTable = DatetimeColumn("table", partitions)
     when(glueConnector.getMaxPartitionValue(datetimeTable)).thenReturn(resultValue)
 
     val result = glueConnector.getMaxPartitionValue(datetimeTable)
+
     assert(result == resultValue)
   }
 }

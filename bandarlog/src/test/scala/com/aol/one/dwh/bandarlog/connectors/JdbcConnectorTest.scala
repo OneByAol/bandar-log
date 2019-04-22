@@ -10,9 +10,9 @@ package com.aol.one.dwh.bandarlog.connectors
 
 import java.sql.{Connection, DatabaseMetaData, ResultSet, Statement}
 
-import com.aol.one.dwh.infra.config.{DatetimeColumn, NumericColumn, Partition}
+import com.aol.one.dwh.infra.config._
 import com.aol.one.dwh.infra.sql.pool.HikariConnectionPool
-import com.aol.one.dwh.infra.sql.{ListStringResultHandler, Setting, VerticaValuesQuery}
+import com.aol.one.dwh.infra.sql.{ListStringResultHandler, Setting, VerticaDatetimeValuesQuery, VerticaNumericValuesQuery}
 import org.apache.commons.dbutils.ResultSetHandler
 import org.mockito.Mockito.when
 import org.scalatest.FunSuite
@@ -30,7 +30,8 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
 
   test("check run query result for numeric batch_id column") {
     val resultValue = 100L
-    val query = VerticaValuesQuery(NumericColumn("table", "column"))
+    val numericTable = NumericColumn("table", "column")
+    val query = VerticaNumericValuesQuery(numericTable)
     when(connectionPool.getConnection).thenReturn(connection)
     when(connectionPool.getName).thenReturn("connection_pool_name")
     when(connection.createStatement()).thenReturn(statement)
@@ -45,8 +46,10 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
   }
 
   test("check run query result for date/time partitions") {
-    val resultValue = Some(List("2019:09:24", "2018:10:13", "2018:08:19", "2018:08:20"))
-    val query = VerticaValuesQuery(DatetimeColumn("table", List(Partition("year", "yyyy"), Partition("month", "MM"), Partition("day", "dd"))))
+    val resultValue = Some(20190924L)
+    val partitions = List(DatetimePatition("year", "yyyy"), DatetimePatition("month", "MM"), DatetimePatition("day", "dd"))
+    val datetimeTable = DatetimeColumn("table", partitions)
+    val query = VerticaDatetimeValuesQuery(datetimeTable)
     when(connectionPool.getConnection).thenReturn(connection)
     when(connectionPool.getName).thenReturn("connection_pool_name")
     when(connection.createStatement()).thenReturn(statement)
