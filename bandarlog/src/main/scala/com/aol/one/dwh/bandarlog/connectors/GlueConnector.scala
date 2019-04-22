@@ -174,9 +174,13 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
 
       if (partitions.nonEmpty) {
         val maxValue = table match {
-          case numericTable: NumericColumn => partialNumericMax(table.tableName, numericTable.columnName, partitions)
+          case numericTable: NumericColumn => partialNumericMax(numericTable.tableName, numericTable.column, partitions)
           case datetimeTable: DatetimeColumn =>
-            partialDatetimeMax(table.tableName, datetimeTable.partitions.map(_.column), datetimeTable.partitions.map(_.format), partitions)
+            partialDatetimeMax(
+              table.tableName,
+              datetimeTable.columns.map(_.columnName),
+              datetimeTable.columns.map(_.columnFormat),
+              partitions)
         }
         val result = previousMax.max(maxValue)
         maxBatchIdPerRequest(token, result, request, segment)
@@ -187,9 +191,13 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
 
     if (firstFetch.nonEmpty) {
       val firstMax = table match {
-        case numericTable: NumericColumn => partialNumericMax(table.tableName, numericTable.columnName, firstFetch)
+        case numericTable: NumericColumn => partialNumericMax(numericTable.tableName, numericTable.column, firstFetch)
         case datetimeTable: DatetimeColumn =>
-          partialDatetimeMax(table.tableName, datetimeTable.partitions.map(_.column), datetimeTable.partitions.map(_.format), firstFetch)
+          partialDatetimeMax(
+            table.tableName,
+            datetimeTable.columns.map(_.columnName),
+            datetimeTable.columns.map(_.columnFormat),
+            firstFetch)
       }
       val (_, max) = maxBatchIdPerRequest("", firstMax, request, segment)
       max
