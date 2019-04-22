@@ -3,7 +3,7 @@ package com.aol.one.dwh.bandarlog.metrics
 import com.aol.one.dwh.bandarlog.metrics.BaseMetrics.{IN, LAG, OUT}
 import com.aol.one.dwh.bandarlog.metrics.Metrics.REALTIME_LAG
 import com.aol.one.dwh.bandarlog.providers.{GlueTimestampProvider, ProviderFactory, SqlLagProvider}
-import com.aol.one.dwh.infra.config.{ConnectorConfig, NumericColumn, NumericPartition, Tag}
+import com.aol.one.dwh.infra.config.{ConnectorConfig, NumericColumn, Tag}
 import com.aol.one.dwh.infra.sql.pool.{ConnectionPoolHolder, HikariConnectionPool}
 import com.typesafe.config.Config
 import org.mockito.Matchers.any
