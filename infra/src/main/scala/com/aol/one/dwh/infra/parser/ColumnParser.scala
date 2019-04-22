@@ -1,7 +1,6 @@
 package com.aol.one.dwh.infra.parser
 
-import com.aol.one.dwh.infra.config.Partition
-
+import com.aol.one.dwh.infra.config._
 import scala.util.parsing.combinator.RegexParsers
 
 
@@ -13,11 +12,11 @@ object ColumnParser extends RegexParsers {
   def column: Parser[String] = "\\w+".r
   def format: Parser[String] = "[\\w\\-\\.\\s\\':,]+".r
 
-  def pair: Parser[Partition] = column ~ pairSep ~ format ^^ {
-    case c ~ _ ~ f => Partition(c, f)
+  def pair: Parser[DatetimePatition] = column ~ pairSep ~ format ^^ {
+    case c ~ _ ~ f => DatetimePatition(c, f)
   }
 
-  def parse(in: String): Partition = {
+  def parse(in: String): DatetimePatition = {
     parseAll(pair, in) match {
       case Success(result, _) => result
       case NoSuccess(msg, next) =>
@@ -25,7 +24,7 @@ object ColumnParser extends RegexParsers {
     }
   }
 
-  def parseList(in: List[String]): List[Partition] = {
+  def parseList(in: List[String]): List[DatetimePatition] = {
     in.map(parse)
   }
 }
