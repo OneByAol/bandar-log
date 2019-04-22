@@ -5,14 +5,24 @@ import org.apache.commons.dbutils.ResultSetHandler
 
 object ResultHandler {
 
-  def get(table: Table): ResultSetHandler[Option[Long]] =
-    table match {
-      case _: NumericColumn => new LongValueResultHandler
+  def get(query: Query): ResultSetHandler[Option[Long]] =
+    query match {
+      case _: VerticaNumericValuesQuery  => new LongValueResultHandler
 
-      case datetimeTable: DatetimeColumn =>
-        val columns = datetimeTable.columns
-        val numberOfColumns = columns.length
-        val format = columns.map(_.columnFormat).mkString(":")
+      case verticaTable: VerticaDatetimeValuesQuery =>
+        val table = verticaTable.table
+        val parititions = table.columns
+        val numberOfColumns = parititions.length
+        val format = parititions.map(_.columnFormat).mkString(":")
+        new ListStringResultHandler(numberOfColumns, format)
+
+      case _: PrestoNumericValuesQuery    => new LongValueResultHandler
+
+      case prestoTable: PrestoDatetimeValuesQuery   =>
+        val table = prestoTable.table
+        val parititions = table.columns
+        val numberOfColumns = parititions.length
+        val format = parititions.map(_.columnFormat).mkString(":")
         new ListStringResultHandler(numberOfColumns, format)
   }
 
