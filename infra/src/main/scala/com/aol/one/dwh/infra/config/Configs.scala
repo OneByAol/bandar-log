@@ -97,20 +97,23 @@ trait Table {
 /**
   * Pair of Sql table and numeric column (for example, "batch_id")
   */
-case class NumericColumn(tableName: String, columnName: String) extends Table
+//or add NumericPartition instead of column?
+case class NumericColumn(tableName: String, column: String) extends Table
 
 /**
   * Pair of Sql table and partition columns
   */
-case class DatetimeColumn(tableName: String, partitions: List[Partition])  extends Table
+case class DatetimeColumn(tableName: String, columns: List[DatetimePatition])  extends Table
 
 /**
   * Partition column
   *
-  * @param column - partition name
+  * @param columnName - partition name
   * @param format - date type column format
   */
-case class Partition(column: String, format: String)
+case class DatetimePatition(columnName: String, columnFormat: String)
+
+//case class NumericPartition(columnName: String)
 
 /**
   * Reporter Tag
