@@ -8,7 +8,7 @@
 
 package com.aol.one.dwh.infra.sql
 
-import com.aol.one.dwh.infra.config.{Table, NumericColumn, DatetimeColumn}
+import com.aol.one.dwh.infra.config.{DatetimeColumn, NumericColumn, Table}
 import com.aol.one.dwh.infra.sql.pool.SqlSource._
 
 /**
@@ -34,37 +34,44 @@ trait VerticaQuery extends Query {
   override def source: String = VERTICA
 }
 
-case class VerticaValuesQuery(table: Table) extends VerticaQuery {
-  override def sql: String = {
-    table match {
-      case numericTable: NumericColumn => s"SELECT MAX(${numericTable.columnName}) AS ${numericTable.columnName} FROM ${table.tableName}"
-      case datetimeTable: DatetimeColumn =>
-        val columns = datetimeTable.partitions.map(_.column)
-        s"SELECT ${columns.mkString(", ")} FROM ${table.tableName}"
-    }
-  }
+case class VerticaNumericValuesQuery(table: NumericColumn) extends VerticaQuery {
+  override def sql: String =  s"SELECT MAX(${table.column}) AS ${table.column} FROM ${table.tableName}"
 
   override def settings: Seq[Setting] = Seq.empty
+
 }
 
-case class PrestoValuesQuery(table: Table) extends PrestoQuery {
-  override def sql: String = {
-    table match {
-      case numericTable: NumericColumn => s"SELECT MAX(${numericTable.columnName}) AS ${numericTable.columnName} FROM ${table.tableName}"
-      case datetimeTable: DatetimeColumn =>
-        val columns = datetimeTable.partitions.map(_.column)
-        s"SELECT ${columns.mkString(", ")} FROM ${table.tableName}"
-    }
-  }
+case class VerticaDatetimeValuesQuery(table: DatetimeColumn) extends VerticaQuery {
+  val columns = table.columns.map(_.columnName)
+
+  override def sql: String = s"SELECT DISTINCT ${columns.mkString(", ")} FROM ${table.tableName}"
+
+  override def settings: Seq[Setting] = Seq.empty
+
+}
+
+case class PrestoNumericValuesQuery(table: NumericColumn) extends PrestoQuery {
+  override def sql: String =  s"SELECT MAX(${table.column}) AS ${table.column} FROM ${table.tableName}"
 
   override def settings: Seq[Setting] = Seq(Setting("optimize_metadata_queries", "true"))
+
 }
 
-object MaxValuesQuery {
+case class PrestoDatetimeValuesQuery(table: DatetimeColumn) extends PrestoQuery {
+  val columns = table.columns.map(_.columnName)
 
-  def get(source: String): Table => Query = source match {
-    case PRESTO => PrestoValuesQuery
-    case VERTICA => VerticaValuesQuery
-    case s => throw new IllegalArgumentException(s"Can't get query for source:[$s]")
+  override def sql: String = s"SELECT DISTINCT ${columns.mkString(", ")} FROM ${table.tableName}"
+
+  override def settings: Seq[Setting] = Seq(Setting("optimize_metadata_queries", "true"))
+
+}
+
+object ValuesQuery {
+  import com.aol.one.dwh.infra.sql.query.GenericQuery
+  import com.aol.one.dwh.infra.sql.query.QueryMaker._
+
+  def get(source: String, table: Table): Query = table match {
+    case table: NumericColumn  => implicitly[GenericQuery[NumericColumn]].getQuery(source, table)
+    case table: DatetimeColumn => implicitly[GenericQuery[DatetimeColumn]].getQuery(source, table)
   }
 }
