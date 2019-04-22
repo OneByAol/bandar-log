@@ -10,7 +10,7 @@ package com.aol.one.dwh.bandarlog.providers
 
 import com.aol.one.dwh.bandarlog.connectors.JdbcConnector
 import com.aol.one.dwh.infra.config.NumericColumn
-import com.aol.one.dwh.infra.sql.Query
+import com.aol.one.dwh.infra.sql.VerticaNumericValuesQuery
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.FunSuite
@@ -19,14 +19,14 @@ import org.scalatest.mock.MockitoSugar
 
 class SqlTimestampProviderTest extends FunSuite with MockitoSugar {
 
-  private val query = mock[Query]
+  private val query = mock[VerticaNumericValuesQuery]
   private val jdbcConnector = mock[JdbcConnector]
   private val table = mock[NumericColumn]
   private val sqlTimestampProvider = new SqlTimestampProvider(jdbcConnector, query)
 
   test("check timestamp value by connector and query") {
     val resultTimestamp = Some(1234567890L)
-    when(jdbcConnector.runQuery(any(classOf[Query]), any())).thenReturn(resultTimestamp)
+    when(jdbcConnector.runQuery(any(classOf[VerticaNumericValuesQuery]), any())).thenReturn(resultTimestamp)
 
     val result = sqlTimestampProvider.provide()
 
@@ -34,7 +34,7 @@ class SqlTimestampProviderTest extends FunSuite with MockitoSugar {
   }
 
   test("return none if can't get timestamp value") {
-    when(jdbcConnector.runQuery(any(classOf[Query]), any())).thenReturn(None)
+    when(jdbcConnector.runQuery(any(classOf[VerticaNumericValuesQuery]), any())).thenReturn(None)
 
     val result = sqlTimestampProvider.provide()
 

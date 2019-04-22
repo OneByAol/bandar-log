@@ -53,7 +53,7 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
     when(connectionPool.getConnection).thenReturn(connection)
     when(connectionPool.getName).thenReturn("connection_pool_name")
     when(connection.createStatement()).thenReturn(statement)
-    when(statement.executeQuery("SELECT year, month, day FROM table")).thenReturn(resultSet)
+    when(statement.executeQuery("SELECT DISTINCT year, month, day FROM table")).thenReturn(resultSet)
     when(connection.getMetaData).thenReturn(databaseMetaData)
     when(databaseMetaData.getURL).thenReturn("connection_url")
     when(listStringResultHandler.handle(resultSet)).thenReturn(resultValue)
