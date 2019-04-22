@@ -11,9 +11,8 @@ package com.aol.one.dwh.bandarlog.providers
 import com.aol.one.dwh.bandarlog.connectors.{GlueConnector, JdbcConnector}
 import com.aol.one.dwh.bandarlog.metrics.{AtomicValue, Value}
 import com.aol.one.dwh.bandarlog.providers.SqlProvider._
-import com.aol.one.dwh.infra.config.{DatetimeColumn, NumericColumn, Table}
-import com.aol.one.dwh.infra.parser.StringToTimestampParser
-import com.aol.one.dwh.infra.sql.{ListStringResultHandler, LongValueResultHandler, Query}
+import com.aol.one.dwh.infra.config.Table
+import com.aol.one.dwh.infra.sql.{ResultHandler, _}
 import com.aol.one.dwh.infra.util.LogTrait
 
 object SqlProvider {
@@ -26,26 +25,21 @@ object SqlProvider {
   *
   * Provides timestamp metric by query and appropriate connector
   */
-class SqlTimestampProvider(connector: JdbcConnector, query: Query, table: Table) extends TimestampProvider with LogTrait{
+class SqlTimestampProvider(connector: JdbcConnector, query: Query) extends TimestampProvider with LogTrait {
 
   override def provide(): Value[Timestamp] = {
 
-    table match {
-      case numericTable: NumericColumn => AtomicValue(connector.runQuery(query, new LongValueResultHandler))
-
-      case datetimeTable: DatetimeColumn =>
-        val columns = datetimeTable.partitions
-        val numberOfColumns = columns.length
-        val format = columns.map(_.format).mkString(":")
-        val queryResult = AtomicValue(connector.runQuery(query, new ListStringResultHandler(numberOfColumns)))
-
-        val maxPartitionsValue = queryResult.getValue.map{ partitionValues => {
-          partitionValues.flatMap(value => StringToTimestampParser.parse(value, format))
-            .max
-        }}
-
-        AtomicValue(maxPartitionsValue)
+    //looks ugly, needs refactoring
+    val table = query match {
+      case verticaTable: VerticaNumericValuesQuery  => verticaTable.table
+      case verticaTable: VerticaDatetimeValuesQuery => verticaTable.table
+      case prestoTable: PrestoNumericValuesQuery    => prestoTable.table
+      case prestoTable: PrestoDatetimeValuesQuery   => prestoTable.table
     }
+
+    val resultHandler = ResultHandler.get(table)
+    AtomicValue(connector.runQuery(query, resultHandler))
+
   }
 }
 
