@@ -22,7 +22,7 @@ class SqlTimestampProviderTest extends FunSuite with MockitoSugar {
   private val query = mock[Query]
   private val jdbcConnector = mock[JdbcConnector]
   private val table = mock[NumericColumn]
-  private val sqlTimestampProvider = new SqlTimestampProvider(jdbcConnector, query, table)
+  private val sqlTimestampProvider = new SqlTimestampProvider(jdbcConnector, query)
 
   test("check timestamp value by connector and query") {
     val resultTimestamp = Some(1234567890L)
