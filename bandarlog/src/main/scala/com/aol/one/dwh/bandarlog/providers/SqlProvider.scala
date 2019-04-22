@@ -29,16 +29,7 @@ class SqlTimestampProvider(connector: JdbcConnector, query: Query) extends Times
 
   override def provide(): Value[Timestamp] = {
 
-    //looks ugly, needs refactoring
-    val table = query match {
-      case verticaTable: VerticaNumericValuesQuery  => verticaTable.table
-      case verticaTable: VerticaDatetimeValuesQuery => verticaTable.table
-      case prestoTable: PrestoNumericValuesQuery    => prestoTable.table
-      case prestoTable: PrestoDatetimeValuesQuery   => prestoTable.table
-    }
-
-    val resultHandler = ResultHandler.get(table)
-    AtomicValue(connector.runQuery(query, resultHandler))
+    AtomicValue(connector.runQuery(query, ResultHandler.get(query)))
 
   }
 }
