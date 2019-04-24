@@ -9,7 +9,7 @@ class ColumnParserTest extends FunSuite {
   test("Parse column and its format from bandarlog config") {
 
     val columns = List("year=yyyy", "month=MM", "day=dd")
-    val expectedResult = List(DatetimePatition("year", "yyyy"), DatetimePatition("month", "MM"), DatetimePatition("day", "dd"))
+    val expectedResult = List(("year", "yyyy"), ("month", "MM"), ("day", "dd"))
 
     val actualResult = ColumnParser.parseList(columns)
 
