@@ -195,22 +195,38 @@ object RichConfig {
       }
     }
 
-    def getTables: Seq[(Table, Table)] = {
+    def getTables: Seq[(TableColumn, TableColumn)] = {
       underlying.getObjectList("tables").map { obj =>
-        val withFormat = obj.toConfig.getOptionalBoolean("with-format").getOrElse(false)
+        val columnType = underlying.getString("column-type")
+        columnType match {
 
-        if (withFormat) {
-          val fromTable = obj.toConfig.getOptionalString("in-table").getOrElse("")
-          val fromColumns = obj.toConfig.getOptionalStringList("in-columns").map(ColumnParser.parseList).getOrElse(Nil)
-          val toTable = obj.toConfig.getOptionalString("out-table").getOrElse("")
-          val toColumns = obj.toConfig.getOptionalStringList("out-columns").map(ColumnParser.parseList).getOrElse(Nil)
+          case "default" =>
+            val fromTable = obj.toConfig.getOptionalString("in-table").map(_.split(":")).getOrElse(Array("", ""))
+            val toTable = obj.toConfig.getOptionalString("out-table").map(_.split(":")).getOrElse(Array("", ""))
+            (TableColumn(fromTable(0), List(fromTable(1)), None), TableColumn(toTable(0), List(toTable(1)), None))
 
-          (DatetimeColumn(fromTable, fromColumns), DatetimeColumn(toTable, toColumns))
-        } else {
-          val fromTable = obj.toConfig.getOptionalString("in-table").map(_.split(":")).getOrElse(Array("", ""))
-          val toTable = obj.toConfig.getOptionalString("out-table").map(_.split(":")).getOrElse(Array("", ""))
+          case "timestamp" =>
+            val fromTable = obj.toConfig.getOptionalString("in-table").getOrElse("")
+            val fromColumns = obj.toConfig.getOptionalStringList("in-columns").getOrElse(List(""))
+            val toTable = obj.toConfig.getOptionalString("out-table").getOrElse("")
+            val toColumns = obj.toConfig.getOptionalStringList("out-columns").getOrElse(List(""))
+            (TableColumn(fromTable, fromColumns, None), TableColumn(toTable, toColumns, None))
 
-          (NumericColumn(fromTable(0), fromTable(1)), NumericColumn(toTable(0), toTable(1)))
+          case "datetime" =>
+            val fromTable = obj.toConfig.getOptionalString("in-table").getOrElse("")
+            val fromColumns = obj.toConfig.getOptionalStringList("in-columns").map(ColumnParser.parseList).getOrElse(List(("", "")))
+            val fromColumnNames = fromColumns.map { case (column, format) => column }
+            val fromColumnFormats = fromColumns.map { case (column, format) => format }
+
+            val toTable = obj.toConfig.getOptionalString("out-table").getOrElse("")
+            val toColumns = obj.toConfig.getOptionalStringList("out-columns").map(ColumnParser.parseList).getOrElse(List(("", "")))
+            val toColumnNames = toColumns.map { case (column, format) => column }
+            val toColumnFormats = toColumns.map { case (column, format) => format }
+
+            (TableColumn(fromTable, fromColumnNames, Some(fromColumnFormats)), TableColumn(toTable, toColumnNames, Some(toColumnFormats)))
+
+          case _ =>
+            throw new IllegalArgumentException(s"Unsupported column type:[$columnType]")
         }
       }
     }
