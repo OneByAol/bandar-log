@@ -13,7 +13,7 @@ import java.util.concurrent.Executors
 import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider, BasicAWSCredentials}
 import com.amazonaws.services.glue.AWSGlueClient
 import com.amazonaws.services.glue.model.{GetPartitionsRequest, GetTableRequest, Partition, Segment}
-import com.aol.one.dwh.infra.config.{GlueConfig, DatetimeColumn, NumericColumn, Table}
+import com.aol.one.dwh.infra.config._
 import com.aol.one.dwh.infra.parser.StringToTimestampParser
 import com.aol.one.dwh.infra.util.LogTrait
 
@@ -46,9 +46,9 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     *
     * @param tableName  - table name
     * @param columnName - column name
-    * @return - max value in partition column (max batchId)
+    * @return           - max value in partition column (max batchId)
     */
-  def getMaxPartitionValue(table: Table): Long = {
+  def getMaxPartitionValue(table: TableColumn): Long = {
     implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(threadPool)
 
     val futures = (0 until segmentTotalNumber) map { number =>
@@ -59,7 +59,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
       }
     }
     val maxValue: Long = Await.result(Future.sequence(futures), config.maxWaitTimeout).max
-    logger.info(s"Max value in table ${table.tableName} is: $maxValue")
+    logger.info(s"Max value in table ${table.table} is: $maxValue")
     maxValue
   }
 
@@ -80,7 +80,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     * Fetches list of names of partition columns in table
     *
     * @param tableName - table name
-    * @return - list of names of partition columns
+    * @return          - list of names of partition columns
     */
   private def getPartitionColumns(tableName: String): List[String] = {
     val tableRequest = new GetTableRequest
@@ -95,7 +95,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     * @param tableName   - table name
     * @param tableColumn - column name
     * @param partitions  - list of Partitions
-    * @return - max value in Partition list
+    * @return            - max value in Partition list
     */
   private def partialNumericMax(tableName: String, tableColumn: String, partitions: List[Partition]): Long = {
     val columns = getPartitionColumns(tableName)
@@ -154,11 +154,11 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     * @param tableName     - table name
     * @param columnName    - column name
     * @param segmentNumber - index number of the segment
-    * @return - max value in Partition list in one segment of table
+    * @return              - max value in Partition list in one segment of table
     */
-  private def getMaxValuePerSegment(table: Table, segmentNumber: Int): Long = {
+  private def getMaxValuePerSegment(table: TableColumn, segmentNumber: Int): Long = {
 
-    val request = createPartitionsRequest(config, table.tableName)
+    val request = createPartitionsRequest(config, table.table)
     val segment = createSegment(segmentTotalNumber).withSegmentNumber(segmentNumber)
     val firstFetch = glueClient.getPartitions(request.withSegment(segment).withMaxResults(fetchSize)).getPartitions.toList
 
@@ -173,13 +173,13 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
         .getPartitions.toList
 
       if (partitions.nonEmpty) {
-        val maxValue = table match {
-          case numericTable: NumericColumn => partialNumericMax(numericTable.tableName, numericTable.column, partitions)
-          case datetimeTable: DatetimeColumn =>
+        val maxValue = table.formats match {
+          case None => partialNumericMax(table.table, table.columns.head, partitions)
+          case Some(formats) =>
             partialDatetimeMax(
-              table.tableName,
-              datetimeTable.columns.map(_.columnName),
-              datetimeTable.columns.map(_.columnFormat),
+              table.table,
+              table.columns,
+              table.formats.get,
               partitions)
         }
         val result = previousMax.max(maxValue)
@@ -190,13 +190,13 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     }
 
     if (firstFetch.nonEmpty) {
-      val firstMax = table match {
-        case numericTable: NumericColumn => partialNumericMax(numericTable.tableName, numericTable.column, firstFetch)
-        case datetimeTable: DatetimeColumn =>
+      val firstMax = table.formats match {
+        case None => partialNumericMax(table.table, table.columns.head, firstFetch)
+        case Some(formats) =>
           partialDatetimeMax(
-            table.tableName,
-            datetimeTable.columns.map(_.columnName),
-            datetimeTable.columns.map(_.columnFormat),
+            table.table,
+            table.columns,
+            table.formats.get,
             firstFetch)
       }
       val (_, max) = maxBatchIdPerRequest("", firstMax, request, segment)
