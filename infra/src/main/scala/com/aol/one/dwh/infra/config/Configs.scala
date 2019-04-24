@@ -90,30 +90,21 @@ case class ReportConfig(prefix: String, interval: Int)
   */
 case class Topic(id: String, values: Set[String], groupId: String)
 
-trait Table {
-  val tableName: String
-}
-
 /**
-  * Pair of Sql table and numeric column (for example, "batch_id")
+  * Sql table with columns
+  * @param table - table name
+  * @param columns - columns' names
+  * @param formats - format of columns (e.g., YYYY, MM, DD, HH:MM:SS) for datetime column
   */
-//or add NumericPartition instead of column?
-case class NumericColumn(tableName: String, column: String) extends Table
-
-/**
-  * Pair of Sql table and partition columns
-  */
-case class DatetimeColumn(tableName: String, columns: List[DatetimePatition])  extends Table
+case class TableColumn(table: String, columns: List[String], formats: Option[List[String]])
 
 /**
   * Partition column
   *
   * @param columnName - partition name
-  * @param format - date type column format
+  * @param format     - date type column format
   */
 case class DatetimePatition(columnName: String, columnFormat: String)
-
-//case class NumericPartition(columnName: String)
 
 /**
   * Reporter Tag
