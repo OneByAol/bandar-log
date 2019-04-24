@@ -8,8 +8,14 @@
 
 package com.aol.one.dwh.infra.sql
 
-import com.aol.one.dwh.infra.config.{DatetimeColumn, NumericColumn, Table}
+import com.aol.one.dwh.infra.config.TableColumn
 import com.aol.one.dwh.infra.sql.pool.SqlSource._
+
+object ColumnType {
+  val DEFAULT = "default"
+  val TIMESTAMP = "timestamp"
+  val DATETIME = "datetime"
+}
 
 /**
   * Base Query interface
@@ -34,44 +40,25 @@ trait VerticaQuery extends Query {
   override def source: String = VERTICA
 }
 
-case class VerticaNumericValuesQuery(table: NumericColumn) extends VerticaQuery {
-  override def sql: String =  s"SELECT MAX(${table.column}) AS ${table.column} FROM ${table.tableName}"
+case class VerticaMaxValuesQuery(tableColumn: TableColumn) extends VerticaQuery {
+  override def sql: String = SQLGenerator.generateSql(tableColumn)
 
   override def settings: Seq[Setting] = Seq.empty
-
 }
 
-case class VerticaDatetimeValuesQuery(table: DatetimeColumn) extends VerticaQuery {
-  val columns = table.columns.map(_.columnName)
-
-  override def sql: String = s"SELECT DISTINCT ${columns.mkString(", ")} FROM ${table.tableName}"
-
-  override def settings: Seq[Setting] = Seq.empty
-
-}
-
-case class PrestoNumericValuesQuery(table: NumericColumn) extends PrestoQuery {
-  override def sql: String =  s"SELECT MAX(${table.column}) AS ${table.column} FROM ${table.tableName}"
+case class PrestoMaxValuesQuery(tableColumn: TableColumn) extends PrestoQuery {
+  override def sql: String = SQLGenerator.generateSql(tableColumn)
 
   override def settings: Seq[Setting] = Seq(Setting("optimize_metadata_queries", "true"))
-
 }
 
-case class PrestoDatetimeValuesQuery(table: DatetimeColumn) extends PrestoQuery {
-  val columns = table.columns.map(_.columnName)
+object MaxValuesQuery {
 
-  override def sql: String = s"SELECT DISTINCT ${columns.mkString(", ")} FROM ${table.tableName}"
-
-  override def settings: Seq[Setting] = Seq(Setting("optimize_metadata_queries", "true"))
-
-}
-
-object ValuesQuery {
-  import com.aol.one.dwh.infra.sql.query.GenericQuery
-  import com.aol.one.dwh.infra.sql.query.QueryMaker._
-
-  def get(source: String, table: Table): Query = table match {
-    case table: NumericColumn  => implicitly[GenericQuery[NumericColumn]].getQuery(source, table)
-    case table: DatetimeColumn => implicitly[GenericQuery[DatetimeColumn]].getQuery(source, table)
+  def get(source: String): TableColumn => Query = source match {
+    case PRESTO => PrestoMaxValuesQuery
+    case VERTICA => VerticaMaxValuesQuery
+    case s => throw new IllegalArgumentException(s"Can't get query for source:[$s]")
   }
 }
+
+
