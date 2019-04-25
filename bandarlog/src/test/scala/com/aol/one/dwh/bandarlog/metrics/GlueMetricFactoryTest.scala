@@ -3,7 +3,7 @@ package com.aol.one.dwh.bandarlog.metrics
 import com.aol.one.dwh.bandarlog.metrics.BaseMetrics.{IN, LAG, OUT}
 import com.aol.one.dwh.bandarlog.metrics.Metrics.REALTIME_LAG
 import com.aol.one.dwh.bandarlog.providers.{GlueTimestampProvider, ProviderFactory, SqlLagProvider}
-import com.aol.one.dwh.infra.config.{ConnectorConfig, NumericColumn, Tag}
+import com.aol.one.dwh.infra.config.{ConnectorConfig, TableColumn, Tag}
 import com.aol.one.dwh.infra.sql.pool.{ConnectionPoolHolder, HikariConnectionPool}
 import com.typesafe.config.Config
 import org.mockito.Matchers.any
@@ -13,8 +13,8 @@ import org.scalatest.mock.MockitoSugar
 
 object GlueMetricFactoryTest {
   private val metricPrefix = "sql_prefix"
-  private val inTable = NumericColumn("in_test_table", "in_test_column")
-  private val outTable = NumericColumn("out_test_table", "out_test_column")
+  private val inTable = TableColumn("in_test_table", List("in_test_column"), None)
+  private val outTable = TableColumn("out_test_table", List("out_test_column"), None)
 }
 
 class GlueMetricFactoryTest extends FunSuite with MockitoSugar {

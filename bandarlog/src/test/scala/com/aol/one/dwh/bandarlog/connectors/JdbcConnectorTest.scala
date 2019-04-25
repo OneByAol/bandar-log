@@ -12,7 +12,7 @@ import java.sql.{Connection, DatabaseMetaData, ResultSet, Statement}
 
 import com.aol.one.dwh.infra.config._
 import com.aol.one.dwh.infra.sql.pool.HikariConnectionPool
-import com.aol.one.dwh.infra.sql.{ListStringResultHandler, Setting, VerticaDatetimeValuesQuery, VerticaNumericValuesQuery}
+import com.aol.one.dwh.infra.sql.{ListStringResultHandler, Setting, VerticaMaxValuesQuery}
 import org.apache.commons.dbutils.ResultSetHandler
 import org.mockito.Mockito.when
 import org.scalatest.FunSuite
@@ -30,8 +30,8 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
 
   test("check run query result for numeric batch_id column") {
     val resultValue = 100L
-    val numericTable = NumericColumn("table", "column")
-    val query = VerticaNumericValuesQuery(numericTable)
+    val table = TableColumn("table", List("column"), None)
+    val query = VerticaMaxValuesQuery(table)
     when(connectionPool.getConnection).thenReturn(connection)
     when(connectionPool.getName).thenReturn("connection_pool_name")
     when(connection.createStatement()).thenReturn(statement)
@@ -47,9 +47,8 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
 
   test("check run query result for date/time partitions") {
     val resultValue = Some(20190924L)
-    val partitions = List(DatetimePatition("year", "yyyy"), DatetimePatition("month", "MM"), DatetimePatition("day", "dd"))
-    val datetimeTable = DatetimeColumn("table", partitions)
-    val query = VerticaDatetimeValuesQuery(datetimeTable)
+    val table = TableColumn("table", List("year", "month", "day"), Some(List("yyyy", "MM", "dd")))
+    val query = VerticaMaxValuesQuery(table)
     when(connectionPool.getConnection).thenReturn(connection)
     when(connectionPool.getName).thenReturn("connection_pool_name")
     when(connection.createStatement()).thenReturn(statement)
