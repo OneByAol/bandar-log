@@ -9,7 +9,9 @@
 package com.aol.one.dwh.infra.config
 
 import com.aol.one.dwh.infra.parser.ColumnParser
+import com.aol.one.dwh.infra.util.LogTrait
 import com.typesafe.config.{Config, ConfigObject}
+
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
@@ -67,7 +69,7 @@ object RichConfig {
       }
   }
 
-  implicit class RichConfig(val underlying: Config) extends AnyRef {
+  implicit class RichConfig(val underlying: Config) extends AnyRef with LogTrait {
 
     def isEnabled: Boolean = {
       underlying.getOptionalBoolean("enabled").getOrElse(false)
@@ -201,6 +203,7 @@ object RichConfig {
         columnType match {
 
           case "default" =>
+            logger.warn("Deprecated. Use column-type `timestamp` instead.")
             val fromTable = obj.toConfig.getOptionalString("in-table").map(_.split(":")).getOrElse(Array("", ""))
             val toTable = obj.toConfig.getOptionalString("out-table").map(_.split(":")).getOrElse(Array("", ""))
             (TableColumn(fromTable(0), List(fromTable(1)), None), TableColumn(toTable(0), List(toTable(1)), None))
