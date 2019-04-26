@@ -2,6 +2,11 @@ package com.aol.one.dwh.infra.parser
 
 import scala.util.parsing.combinator.RegexParsers
 
+/**
+  * Column parser
+  *
+  * Parses column=format pairs provided in config
+  */
 object ColumnParser extends RegexParsers {
 
   override def skipWhitespace: Boolean = false
