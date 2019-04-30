@@ -24,24 +24,26 @@ object V {
   val mockito             = "1.10.19"
   val awsGlue             = "1.11.388"
   val kafka               = "2.2.0"
+  val parser              = "1.1.2"
 }
 
 object Dependencies {
-  val typesafeConfig        = "com.typesafe"          % "config"                       % V.config
-  val datadogMetrics        = "org.coursera"          % "metrics-datadog"              % V.datadogMetrics
-  val dbUtils               = "commons-dbutils"       % "commons-dbutils"              % V.dbUtils
-  val presto                = "com.facebook.presto"   % "presto-jdbc"                  % V.presto
-  val consulClient          = "com.ecwid.consul"      % "consul-api"                   % V.consulClient
-  val hikariPool            = "com.zaxxer"            % "HikariCP"                     % V.hikariPool
-  val slf4j                 = "org.slf4j"             % "slf4j-api"                    % V.slf4j
-  val log4j                 = "org.slf4j"             % "slf4j-log4j12"                % V.slf4j
-  val scalaCache            = "com.github.cb372"      %% "scalacache-guava"            % V.scalaCache
-  val scopt                 = "com.github.scopt"      %% "scopt"                       % V.scopt
-  val scalaArm              = "com.jsuereth"          %% "scala-arm"                   % V.scalaArm
-  val scalaz                = "org.scalaz"            %% "scalaz-core"                 % V.scalaz
-  val scalaTest             = "org.scalatest"         %% "scalatest"                   % V.scalatest     % Test
-  val mockito               = "org.mockito"           % "mockito-core"                 % V.mockito       % Test
-  val awsGlue               = "com.amazonaws"         % "aws-java-sdk-glue"            % V.awsGlue
-  val kafka4scala           = "org.apache.kafka"      %% "kafka"                       % V.kafka
-  val kafkaClients          = "org.apache.kafka"      %  "kafka-clients"               % V.kafka
+  val typesafeConfig        = "com.typesafe"           % "config"                       % V.config
+  val datadogMetrics        = "org.coursera"           % "metrics-datadog"              % V.datadogMetrics
+  val dbUtils               = "commons-dbutils"        % "commons-dbutils"              % V.dbUtils
+  val presto                = "com.facebook.presto"    % "presto-jdbc"                  % V.presto
+  val consulClient          = "com.ecwid.consul"       % "consul-api"                   % V.consulClient
+  val hikariPool            = "com.zaxxer"             % "HikariCP"                     % V.hikariPool
+  val slf4j                 = "org.slf4j"              % "slf4j-api"                    % V.slf4j
+  val log4j                 = "org.slf4j"              % "slf4j-log4j12"                % V.slf4j
+  val scalaCache            = "com.github.cb372"       %% "scalacache-guava"            % V.scalaCache
+  val scopt                 = "com.github.scopt"       %% "scopt"                       % V.scopt
+  val scalaArm              = "com.jsuereth"           %% "scala-arm"                   % V.scalaArm
+  val scalaz                = "org.scalaz"             %% "scalaz-core"                 % V.scalaz
+  val scalaTest             = "org.scalatest"          %% "scalatest"                   % V.scalatest     % Test
+  val mockito               = "org.mockito"            % "mockito-core"                 % V.mockito       % Test
+  val awsGlue               = "com.amazonaws"          % "aws-java-sdk-glue"            % V.awsGlue
+  val kafka4scala           = "org.apache.kafka"       %% "kafka"                       % V.kafka
+  val kafkaClients          = "org.apache.kafka"       %  "kafka-clients"               % V.kafka
+  val parserCombinators     = "org.scala-lang.modules" %% "scala-parser-combinators"    % V.parser
 }

@@ -51,7 +51,8 @@ lazy val `infra` = project
         awsGlue,
         scalaCache,
         kafka4scala,
-        kafkaClients
+        kafkaClients,
+        parserCombinators
       )
   )
 
