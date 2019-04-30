@@ -11,7 +11,7 @@ package com.aol.one.dwh.bandarlog.providers
 import com.aol.one.dwh.bandarlog.connectors.{GlueConnector, JdbcConnector}
 import com.aol.one.dwh.bandarlog.metrics.{AtomicValue, Value}
 import com.aol.one.dwh.bandarlog.providers.SqlProvider._
-import com.aol.one.dwh.infra.config.TableColumn
+import com.aol.one.dwh.infra.config.Table
 import com.aol.one.dwh.infra.sql.{QueryResulthandler, _}
 import com.aol.one.dwh.infra.util.LogTrait
 
@@ -38,7 +38,7 @@ class SqlTimestampProvider(connector: JdbcConnector, query: Query) extends Times
   *
   * Provides timestamp metric by table, partition column and appropriate connector
   */
-class GlueTimestampProvider(connector: GlueConnector, table: TableColumn) extends TimestampProvider {
+class GlueTimestampProvider(connector: GlueConnector, table: Table) extends TimestampProvider {
 
   override def provide(): Value[Timestamp] = {
     AtomicValue(Option(connector.getMaxPartitionValue(table)))
