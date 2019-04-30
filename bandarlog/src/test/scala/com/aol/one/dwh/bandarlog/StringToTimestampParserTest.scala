@@ -9,10 +9,10 @@ class StringToTimestampParserTest extends FunSuite {
   val format = "yyyy:MM:dd"
 
   test("Parse partition date value to timestamp") {
-
     val expectedResult: Option[Long] = Some(1539216000000L)
 
     val actualResult: Option[Long] = StringToTimestampParser.parse(columnValue, format)
+
     assert(expectedResult equals actualResult)
   }
 
