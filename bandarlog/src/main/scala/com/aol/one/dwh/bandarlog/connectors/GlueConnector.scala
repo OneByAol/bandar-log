@@ -48,7 +48,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     * @param columnName - column name
     * @return           - max value in partition column (max batchId)
     */
-  def getMaxPartitionValue(table: TableColumn): Long = {
+  def getMaxPartitionValue(table: Table): Long = {
     implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(threadPool)
 
     val futures = (0 until segmentTotalNumber) map { number =>
@@ -156,7 +156,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     * @param segmentNumber - index number of the segment
     * @return              - max value in Partition list in one segment of table
     */
-  private def getMaxValuePerSegment(table: TableColumn, segmentNumber: Int): Long = {
+  private def getMaxValuePerSegment(table: Table, segmentNumber: Int): Long = {
 
     val request = createPartitionsRequest(config, table.table)
     val segment = createSegment(segmentTotalNumber).withSegmentNumber(segmentNumber)

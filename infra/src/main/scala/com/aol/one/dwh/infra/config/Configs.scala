@@ -104,7 +104,7 @@ case class Topic(id: String, values: Set[String], groupId: String)
   * @param columns - columns' names
   * @param formats - format of columns (e.g., YYYY, MM, DD, HH:MM:SS) for datetime column
   */
-case class TableColumn(table: String, columns: List[String], formats: Option[List[String]])
+case class Table(table: String, columns: List[String], formats: Option[List[String]])
 
 /**
   * Partition column
