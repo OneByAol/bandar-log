@@ -9,7 +9,7 @@
 package com.aol.one.dwh.bandarlog.providers
 
 import com.aol.one.dwh.bandarlog.connectors.GlueConnector
-import com.aol.one.dwh.infra.config.TableColumn
+import com.aol.one.dwh.infra.config.Table
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.FunSuite
@@ -17,7 +17,7 @@ import org.scalatest.mock.MockitoSugar
 
 class GlueTimestampProviderTest extends FunSuite with MockitoSugar{
 
-  private val table = mock[TableColumn]
+  private val table = mock[Table]
   private val glueConnector = mock[GlueConnector]
   private val glueTimestampProvider = new GlueTimestampProvider(glueConnector, table)
 
