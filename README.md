@@ -174,7 +174,7 @@ enabled = true
 ```
 bandarlog-type = "kafka"
 ```
-3. **Column type** - for `sql` type of bandarlog type of partition column, e.g., "datetime" (e.g., DATE '2013-01-01', can be several columns), "timestamp" (timestamp measured in milliseconds, one dedicated column, e.g., batch_id), "default" (timestamp measured in milliseconds, for compatibility with previous version of BandafLog, will be deprecated)
+3. **Column type** - can be of several types according to data type of partition column: `default` (timestamp measured in milliseconds, for compatibility with previous version of BandafLog, will be deprecated) or `timestamp` (timestamp measured in milliseconds, one dedicated column, e.g., batch_id) or `datetime` (e.g., DATE '2013-01-01', can be several columns).
 ```
 column-type = "timestamp"
 ```
