@@ -3,7 +3,7 @@ import sbt.Keys._
 
 lazy val buildNumber = sys.env.getOrElse("TRAVIS_BUILD_NUMBER", "SNAPSHOT")
 
-ThisBuild / scalaVersion := "2.11.12"
+ThisBuild / scalaVersion := "2.12.8"
 ThisBuild / fork := true
 ThisBuild / crossPaths := false
 ThisBuild / updateOptions := updateOptions.value.withCachedResolution(cachedResoluton = true)
@@ -32,26 +32,27 @@ lazy val `infra` = project
     && ResolversPlugin
   )
   .settings(
-      autoScalaLibrary := true,
-      exportJars := true,
-      libraryDependencies ++=
-        Seq(
-            slf4j,
-            log4j,
-            scalaTest,
-            mockito,
-            typesafeConfig,
-            consulClient,
-            presto,
-            dbUtils,
-            scopt,
-            sparkStreaming,
-            sparkStreamingKafka,
-            hikariPool,
-            scalaArm,
-            scalaz,
-            awsGlue
-        )
+    autoScalaLibrary := true,
+    exportJars := true,
+    libraryDependencies ++=
+      Seq(
+        slf4j,
+        log4j,
+        scalaTest,
+        mockito,
+        typesafeConfig,
+        consulClient,
+        presto,
+        dbUtils,
+        scopt,
+        hikariPool,
+        scalaArm,
+        scalaz,
+        awsGlue,
+        scalaCache,
+        kafka4scala,
+        kafkaClients
+      )
   )
 
 lazy val `bandarlog` = project
@@ -62,16 +63,16 @@ lazy val `bandarlog` = project
   )
   .dependsOn(`infra`)
   .settings(
-      mainClass in Compile := Some("com.aol.one.dwh.bandarlog.EntryPoint"),
-      exportJars := true,
-      libraryDependencies ++=
-        Seq(
-          scalaTest,
-          mockito,
-          datadogMetrics,
-          scalaCache
-        ),
+    mainClass in Compile := Some("com.aol.one.dwh.bandarlog.EntryPoint"),
+    exportJars := true,
+    libraryDependencies ++=
+      Seq(
+        scalaTest,
+        mockito,
+        datadogMetrics,
+        scalaCache
+      ),
 
-    dockerBaseImage := "java",
+    dockerBaseImage := "openjdk:8-jre-slim",
     dockerEntrypoint := Seq("bin/start.sh")
   )

@@ -8,20 +8,18 @@
 
 package com.aol.one.dwh.bandarlog.connectors
 
-import kafka.common.TopicAndPartition
-import org.apache.spark.streaming.kafka.KafkaClusterWrapper
-import KafkaConnector._
+import com.aol.one.dwh.bandarlog.connectors.KafkaConnector._
 import com.aol.one.dwh.infra.config.Topic
+import com.aol.one.dwh.infra.kafka.KafkaCluster
 import com.aol.one.dwh.infra.util.LogTrait
+import kafka.common.TopicAndPartition
 
 object KafkaConnector {
+  type Offset = Long
   type KafkaPartitions = Set[TopicAndPartition]
-  type KafkaHeads = Map[TopicAndPartition, Long]
-  type KafkaOffsets = Map[TopicAndPartition, Long]
+  type KafkaHeads = Map[TopicAndPartition, Offset]
+  type KafkaOffsets = Map[TopicAndPartition, Offset]
   type KafkaState = (KafkaHeads, KafkaOffsets)
-
-  // Kafka API version, should be greater than 0 to read from non-ZK offset storage
-  private val KAFKA_API_VERSION = 1.toShort
 }
 
 /**
@@ -29,47 +27,27 @@ object KafkaConnector {
   *
   * Provides Kafka cluster API by kafka config
   */
-class KafkaConnector(kafkaCluster: KafkaClusterWrapper) extends LogTrait {
+class KafkaConnector(kafkaCluster: KafkaCluster) extends LogTrait {
 
   def getKafkaState(topic: Topic): Option[KafkaState] =
     for {
-      partitions <- getPartitions(topic)
-      heads      <- getHeads(topic, partitions)
-      offsets    <- getOffsets(topic, partitions)
+      heads      <- getHeads(topic)
+      offsets    <- getOffsets(topic)
     } yield (heads, offsets)
 
   def getHeads(topic: Topic): Option[KafkaHeads] = {
-    getPartitions(topic).flatMap(partitions => getHeads(topic, partitions))
+    kafkaCluster.getLatestOffsets(topic.groupId, topic.values) match {
+      case Left(l) =>
+        logger.error(s"Cannot obtain leaders offsets for topic:[${topic.values}], cause {}", l.toString)
+        None
+      case Right(r) => Some(r.map { case (key, value) => key -> value })
+    }
   }
 
   def getOffsets(topic: Topic): Option[KafkaOffsets] = {
-    getPartitions(topic).flatMap(partitions => getOffsets(topic, partitions))
-  }
-
-  private def getPartitions(topic: Topic): Option[KafkaPartitions] = {
-    kafkaCluster.getPartitions(topic.values) match {
+    kafkaCluster.getConsumerOffsets(topic.groupId, topic.values ) match {
       case Left(l) =>
-        logger.error(s"Cannot obtain partitions for topic:[${topic.values}], cause {}", l.headOption.getOrElse(l.toString()))
-        None
-      case Right(r) =>
-        logger.debug("Number of overall partitions for topic {} == {}", topic.values, r.size)
-        Some(r)
-    }
-  }
-
-  private def getHeads(topic: Topic, partitions: Set[TopicAndPartition]): Option[KafkaHeads] = {
-    kafkaCluster.getLatestLeaderOffsets(partitions) match {
-      case Left(l) =>
-        logger.error(s"Cannot obtain leaders offsets for topic:[${topic.values}], cause {}", l.headOption.getOrElse(l.toString()))
-        None
-      case Right(r) => Some(r.map { case (key, value) => key -> value.offset })
-    }
-  }
-
-  private def getOffsets(topic: Topic, partitions: Set[TopicAndPartition]): Option[KafkaOffsets] = {
-    kafkaCluster.getConsumerOffsets(topic.groupId, partitions, KAFKA_API_VERSION) match {
-      case Left(l) =>
-        logger.error(s"Cannot obtain consumers offsets for topic:[${topic.values}], cause {}", l.headOption.getOrElse(l.toString()))
+        logger.error(s"Cannot obtain consumers offsets for topic:[${topic.values}], cause {}", l.toString)
         None
       case Right(r) => Some(r)
     }

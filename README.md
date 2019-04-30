@@ -1,5 +1,5 @@
 # Bandar-Log: Monitoring Tool
-[![Build Status](https://travis-ci.org/OneByAol/bandar-log.svg?branch=master)](https://travis-ci.org/OneByAol/bandar-log)
+[![Build Status](https://travis-ci.org/VerizonAdPlatforms/bandar-log.svg?branch=master)](https://travis-ci.org/VerizonAdPlatforms/bandar-log)
 
 <p align="center"><img src="doc/images/monkey.png" width="350" height="350"/></p>
 
@@ -70,9 +70,9 @@ In Bandar-Log data source is represented by configuration object called `data so
 #### Kafka 
 _Kafka data source configuration:_
 ```
-kafka-config {              # kafka configuration id (can be any id)
-  brokers = null            # default list of brokers, currently is disabled and taken from zookeeper
-  zk-quorum = "1.1.1.1"     # zookeeper servers
+kafka-config {                   # kafka configuration id (can be any id)
+  brokers = null                 # default list of brokers, currently is disabled and taken from zookeeper
+  zk-quorum = "1.1.1.1:2181"     # zookeeper servers
 }
 
 example-bandarlog {
@@ -107,7 +107,7 @@ aws-glue-source-config {
 ```
 
 #### Supported data source versions:
-   - Kafka _(0.8.1.1 <= version < 0.9.0.0)_
+   - Kafka _(version >= 0.10.2)_
    - SQL
         - Vertica _(compatible with vertica driver 6.0.0)_
         - Presto _(compatible with presto driver 0.181)_
@@ -240,7 +240,7 @@ metrics = ["IN", "OUT", "LAG"]
 #### Kafka
 > **Note**
 >
-> Bandar-Log assumes that Kafka consumer component that require to me monitorred, commit their offsets back to Kafka using [Kafka API](https://github.com/apache/spark/blob/master/external/kafka-0-8/src/main/scala/org/apache/spark/streaming/kafka/KafkaCluster.scala#L307).
+> Bandar-Log assumes that Kafka consumer component that require to me monitored, commit their offsets back to Kafka using [Kafka API](https://github.com/apache/spark/blob/master/external/kafka-0-8/src/main/scala/org/apache/spark/streaming/kafka/KafkaCluster.scala#L307).
 
 The following metrics are available for `bandarlog` with type `kafka` :
 

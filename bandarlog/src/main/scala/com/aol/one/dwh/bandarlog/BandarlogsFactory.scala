@@ -14,10 +14,10 @@ import com.aol.one.dwh.bandarlog.providers.ProviderFactory
 import com.aol.one.dwh.bandarlog.reporters.{CustomTags, MetricReporter, RegistryFactory}
 import com.aol.one.dwh.bandarlog.scheduler.Scheduler
 import com.aol.one.dwh.infra.config.RichConfig._
+import com.aol.one.dwh.infra.kafka.KafkaCluster
 import com.aol.one.dwh.infra.sql.pool.ConnectionPoolHolder
 import com.aol.one.dwh.infra.util.{ExceptionPrinter, LogTrait}
 import com.typesafe.config.Config
-import org.apache.spark.streaming.kafka.KafkaClusterWrapper
 
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
@@ -64,7 +64,7 @@ class BandarlogsFactory(mainConfig: Config) extends LogTrait with ExceptionPrint
   private def kafkaMetricProviders(bandarlogConf: Config) = {
     val metricsPrefix = bandarlogConf.getReportConfig.prefix
     val kafkaConfig = mainConfig.getKafkaConfig(bandarlogConf.getConnector)
-    val kafkaConnector = new KafkaConnector(KafkaClusterWrapper(kafkaConfig))
+    val kafkaConnector = new KafkaConnector(KafkaCluster(kafkaConfig))
     val kafkaMetricFactory = new KafkaMetricFactory(kafkaConnector)
 
     bandarlogConf.getKafkaTopics.flatMap { topic =>

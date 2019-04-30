@@ -9,8 +9,8 @@
 package com.aol.one.dwh.bandarlog.connectors
 
 import com.aol.one.dwh.infra.config.Topic
+import com.aol.one.dwh.infra.kafka.KafkaCluster
 import kafka.common.TopicAndPartition
-import org.apache.spark.streaming.kafka.{ErrorWrapper, KafkaClusterWrapper, LeaderOffsetsWrapper}
 import org.mockito.Mockito.when
 import org.scalatest.FunSuite
 import org.scalatest.mock.MockitoSugar
@@ -18,22 +18,21 @@ import org.scalatest.mock.MockitoSugar
 
 class KafkaConnectorTest extends FunSuite with MockitoSugar {
 
-  private val kafkaCluster = mock[KafkaClusterWrapper]
+  private val kafkaCluster = mock[KafkaCluster]
   private val kafkaConnector = new KafkaConnector(kafkaCluster)
 
   private val topic = Topic("topic_id", Set("topic_1", "topic_2"), "group_id")
 
   test("return kafka heads") {
     val headsValues = Map(
-      TopicAndPartition("topic_1", 1) -> new LeaderOffsetsWrapper("", 0, 1L),
-      TopicAndPartition("topic_2", 2) -> new LeaderOffsetsWrapper("", 0, 2L),
-      TopicAndPartition("topic_3", 3) -> new LeaderOffsetsWrapper("", 0, 3L)
+      TopicAndPartition("topic_1", 1) -> 1L,
+      TopicAndPartition("topic_2", 2) -> 2L,
+      TopicAndPartition("topic_3", 3) -> 3L
     )
-    val partitions: Either[ErrorWrapper, Set[TopicAndPartition]] = Right(headsValues.keySet)
-    val heads: Either[ErrorWrapper, Map[TopicAndPartition, LeaderOffsetsWrapper]] = Right(headsValues)
+    val partitions: Either[Throwable, Set[TopicAndPartition]] = Right(headsValues.keySet)
+    val heads: Either[Throwable, Map[TopicAndPartition, Long]] = Right(headsValues)
 
-    when(kafkaCluster.getPartitions(topic.values)).thenReturn(partitions)
-    when(kafkaCluster.getLatestLeaderOffsets(partitions.right.get)).thenReturn(heads)
+    when(kafkaCluster.getLatestOffsets(topic.groupId, topic.values)).thenReturn(heads)
 
     val resultHeads = kafkaConnector.getHeads(topic)
 
@@ -47,24 +46,13 @@ class KafkaConnectorTest extends FunSuite with MockitoSugar {
 
   test("return none if can't retrieve heads") {
     val headsValues = Map(
-      TopicAndPartition("topic_1", 1) -> new LeaderOffsetsWrapper("", 0, 1L),
-      TopicAndPartition("topic_2", 2) -> new LeaderOffsetsWrapper("", 0, 2L),
-      TopicAndPartition("topic_3", 3) -> new LeaderOffsetsWrapper("", 0, 3L)
+      TopicAndPartition("topic_1", 1) -> 1L,
+      TopicAndPartition("topic_2", 2) -> 2L,
+      TopicAndPartition("topic_3", 3) -> 3L
     )
-    val partitions: Either[ErrorWrapper, Set[TopicAndPartition]] = Right(headsValues.keySet)
-    val heads: Either[ErrorWrapper, Map[TopicAndPartition, LeaderOffsetsWrapper]] = Left(new ErrorWrapper)
+    val heads: Either[Throwable, Map[TopicAndPartition, Long]] = Left(new Throwable)
 
-    when(kafkaCluster.getPartitions(topic.values)).thenReturn(partitions)
-    when(kafkaCluster.getLatestLeaderOffsets(partitions.right.get)).thenReturn(heads)
-
-    val resultHeads = kafkaConnector.getHeads(topic)
-
-    assert(resultHeads.isEmpty)
-  }
-
-  test("return none heads if can't retrieve partitions") {
-    val partitions: Either[ErrorWrapper, Set[TopicAndPartition]] = Left(new ErrorWrapper)
-    when(kafkaCluster.getPartitions(topic.values)).thenReturn(partitions)
+    when(kafkaCluster.getLatestOffsets(topic.groupId, topic.values)).thenReturn(heads)
 
     val resultHeads = kafkaConnector.getHeads(topic)
 
@@ -77,11 +65,9 @@ class KafkaConnectorTest extends FunSuite with MockitoSugar {
       TopicAndPartition("topic_2", 2) -> 2L,
       TopicAndPartition("topic_3", 3) -> 3L
     )
-    val partitions: Either[ErrorWrapper, Set[TopicAndPartition]] = Right(offsetValues.keySet)
-    val offsets: Either[ErrorWrapper, Map[TopicAndPartition, Long]] = Right(offsetValues)
+    val offsets: Either[Throwable, Map[TopicAndPartition, Long]] = Right(offsetValues)
 
-    when(kafkaCluster.getPartitions(topic.values)).thenReturn(partitions)
-    when(kafkaCluster.getConsumerOffsets(topic.groupId, partitions.right.get, 1.toShort)).thenReturn(offsets)
+    when(kafkaCluster.getConsumerOffsets(topic.groupId, topic.values)).thenReturn(offsets)
 
     val resultOffsets = kafkaConnector.getOffsets(topic)
 
@@ -95,20 +81,9 @@ class KafkaConnectorTest extends FunSuite with MockitoSugar {
       TopicAndPartition("topic_2", 2) -> 2L,
       TopicAndPartition("topic_3", 3) -> 3L
     )
-    val partitions: Either[ErrorWrapper, Set[TopicAndPartition]] = Right(offsetValues.keySet)
-    val offsets: Either[ErrorWrapper, Map[TopicAndPartition, Long]] = Left(new ErrorWrapper)
+    val offsets: Either[Throwable, Map[TopicAndPartition, Long]] = Left(new Throwable)
 
-    when(kafkaCluster.getPartitions(topic.values)).thenReturn(partitions)
-    when(kafkaCluster.getConsumerOffsets(topic.groupId, partitions.right.get, 1.toShort)).thenReturn(offsets)
-
-    val resultOffsets = kafkaConnector.getOffsets(topic)
-
-    assert(resultOffsets.isEmpty)
-  }
-
-  test("return none offsets if can't retrieve partitions") {
-    val partitions: Either[ErrorWrapper, Set[TopicAndPartition]] = Left(new ErrorWrapper)
-    when(kafkaCluster.getPartitions(topic.values)).thenReturn(partitions)
+    when(kafkaCluster.getConsumerOffsets(topic.groupId, topic.values)).thenReturn(offsets)
 
     val resultOffsets = kafkaConnector.getOffsets(topic)
 
@@ -117,9 +92,9 @@ class KafkaConnectorTest extends FunSuite with MockitoSugar {
 
   test("return kafka state") {
     val headsValues = Map(
-      TopicAndPartition("topic_1", 1) -> new LeaderOffsetsWrapper("", 0, 1L),
-      TopicAndPartition("topic_2", 2) -> new LeaderOffsetsWrapper("", 0, 2L),
-      TopicAndPartition("topic_3", 3) -> new LeaderOffsetsWrapper("", 0, 3L)
+      TopicAndPartition("topic_1", 1) -> 1L,
+      TopicAndPartition("topic_2", 2) -> 2L,
+      TopicAndPartition("topic_3", 3) -> 3L
     )
     val offsetValues = Map(
       TopicAndPartition("topic_1", 1) -> 4L,
@@ -127,13 +102,11 @@ class KafkaConnectorTest extends FunSuite with MockitoSugar {
       TopicAndPartition("topic_3", 3) -> 6L
     )
 
-    val partitions: Either[ErrorWrapper, Set[TopicAndPartition]] = Right(headsValues.keySet)
-    val heads: Either[ErrorWrapper, Map[TopicAndPartition, LeaderOffsetsWrapper]] = Right(headsValues)
-    val offsets: Either[ErrorWrapper, Map[TopicAndPartition, Long]] = Right(offsetValues)
+    val heads: Either[Throwable, Map[TopicAndPartition, Long]] = Right(headsValues)
+    val offsets: Either[Throwable, Map[TopicAndPartition, Long]] = Right(offsetValues)
 
-    when(kafkaCluster.getPartitions(topic.values)).thenReturn(partitions)
-    when(kafkaCluster.getLatestLeaderOffsets(partitions.right.get)).thenReturn(heads)
-    when(kafkaCluster.getConsumerOffsets(topic.groupId, partitions.right.get, 1.toShort)).thenReturn(offsets)
+    when(kafkaCluster.getLatestOffsets(topic.groupId, topic.values)).thenReturn(heads)
+    when(kafkaCluster.getConsumerOffsets(topic.groupId, topic.values)).thenReturn(offsets)
 
     val resultState = kafkaConnector.getKafkaState(topic)
 
@@ -150,14 +123,5 @@ class KafkaConnectorTest extends FunSuite with MockitoSugar {
     )
     assert(resultState.nonEmpty)
     assert(resultState.get == (expectedHeads, expectedOffsets))
-  }
-
-  test("return none kafka state if can't retrieve partitions") {
-    val partitions: Either[ErrorWrapper, Set[TopicAndPartition]] = Left(new ErrorWrapper)
-    when(kafkaCluster.getPartitions(topic.values)).thenReturn(partitions)
-
-    val resultOffsets = kafkaConnector.getKafkaState(topic)
-
-    assert(resultOffsets.isEmpty)
   }
 }

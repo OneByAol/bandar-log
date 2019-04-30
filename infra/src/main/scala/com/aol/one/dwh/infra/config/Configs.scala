@@ -9,15 +9,23 @@
 package com.aol.one.dwh.infra.config
 
 import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 /**
   * Kafka configuration
   *
-  * @param zookeeperQuorum - zookeeper host
-  * @param brokers         - kafka brokers list
+  * @param zookeeperQuorum        - zookeeper connection string (host:port)
+  * @param brokers                - kafka brokers list
+  * @param kafkaResponseTimeout   - for how long to wait for response from Kafka
+  * @param cacheResultsTime       - for how long to cache Kafka metadata
   *
   */
-case class KafkaConfig(zookeeperQuorum: String, brokers: Option[String])
+case class KafkaConfig(
+  zookeeperQuorum: String,
+  brokers: Option[String],
+  kafkaResponseTimeout: Option[Duration],
+  cacheResultsTime: Option[Duration]
+)
 
 /**
   * Glue client configuration
