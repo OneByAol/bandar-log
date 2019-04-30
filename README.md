@@ -67,7 +67,7 @@ In Bandar-Log data source is represented by configuration object called `data so
 
 `Data source config` specifies driver/connection properties like host, username, password etc... `Data source config` can be shared between multiple `data sources`.
 
-#### Kafka 
+#### Kafka data source
 _Kafka data source configuration:_
 ```
 kafka-config {                   # kafka configuration id (can be any id)
@@ -80,7 +80,7 @@ example-bandarlog {
 }
 ```
 
-#### SQL
+#### SQL data source
 _SQL data source configuration:_
 ```
 sql-data-source-config {             # data source configuration id (can be any id)
@@ -178,13 +178,13 @@ bandarlog-type = "kafka"
 ```
 column-type = "timestamp"
 ```
-4. **Data source & Connector** - see [Data sources](#data-sources) section.
+4. **Data source & Connector** - see [Data sources](#data-source-config) section.
 
-5. **Metrics** - list of metrics which are should be calculated and reported (see [Metrics](#metrics)).
+5. **Metrics** - list of metrics which are should be calculated and reported (see [Metric](#metric)).
 ```
 metrics = ["IN", "OUT", "LAG"]    
 ```
-6. **Reporters** - see [Reporters](#reporters) section.
+6. **Reporters** - see [Reporter](#reporter) section.
 
 7. **Scheduler** - specifies bandarlog execution time
 ```
