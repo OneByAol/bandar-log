@@ -69,7 +69,7 @@ lazy val `bandarlog` = project
       Seq(
         scalaTest,
         mockito,
-        datadogMetrics,
+        ddMetrics,
         scalaCache
       ),
 
