@@ -18,7 +18,6 @@ object V {
   val scopt               = "3.7.1"
   val hikariPool          = "3.3.1"
   val scalaArm            = "2.0"
-  val scalaz              = "7.2.9"
   val slf4j               = "1.7.16"
   val scalatest           = "3.0.7"
   val mockito             = "1.10.19"
@@ -38,7 +37,6 @@ object Dependencies {
   val scalaCache            = "com.github.cb372"      %% "scalacache-guava"            % V.scalaCache
   val scopt                 = "com.github.scopt"      %% "scopt"                       % V.scopt
   val scalaArm              = "com.jsuereth"          %% "scala-arm"                   % V.scalaArm
-  val scalaz                = "org.scalaz"            %% "scalaz-core"                 % V.scalaz
   val scalaTest             = "org.scalatest"         %% "scalatest"                   % V.scalatest     % Test
   val mockito               = "org.mockito"           % "mockito-core"                 % V.mockito       % Test
   val awsGlue               = "com.amazonaws"         % "aws-java-sdk-glue"            % V.awsGlue
