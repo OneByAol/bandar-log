@@ -20,7 +20,6 @@ object StringToTimestampParser extends LogTrait with ExceptionPrinter {
 
     Try {
       val dateFormat: DateFormat = new SimpleDateFormat(format)
-
       dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"))
       dateFormat.parse(value).getTime
     }.recoverWith {
@@ -28,6 +27,5 @@ object StringToTimestampParser extends LogTrait with ExceptionPrinter {
           logger.error(s"Could not parse value:[$value] using format:[$format]. Catching exception {}", e.getStringStackTrace)
           Failure(e)
     }.toOption
-
   }
 }
