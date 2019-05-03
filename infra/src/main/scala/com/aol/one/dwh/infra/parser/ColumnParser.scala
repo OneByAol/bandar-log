@@ -12,8 +12,8 @@ object ColumnParser extends RegexParsers {
   override def skipWhitespace: Boolean = false
 
   def pairSeparator: Parser[String] = "=".r
-  def columnName: Parser[String] = "\\w+".r
-  def columnFormat: Parser[String] = "[\\w\\-\\.\\s\\':,]+".r
+  def columnName: Parser[String] = """\w""".r
+  def columnFormat: Parser[String] = """[\w\-\.\s\':,_]+""".r
 
   def pair: Parser[(String, String)] = columnName ~ pairSeparator ~ columnFormat ^^ {
     case c ~ _ ~ f => (c, f)
@@ -27,7 +27,5 @@ object ColumnParser extends RegexParsers {
     }
   }
 
-  def parseList(in: List[String]): List[(String, String)] = {
-    in.map(parse)
-  }
+  def parseList(in: List[String]): List[(String, String)] = in.map(parse)
 }
