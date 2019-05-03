@@ -11,7 +11,6 @@ import sbt._
 
 object ResolversPlugin extends AutoPlugin {
 
-  private val scalaz             = "scalaz-bintray"               at "http://dl.bintray.com/scalaz/releases"
   private val typeSafeResolver   = "Typesafe repository releases" at "http://repo.typesafe.com/typesafe/releases/"
   private val sprayResolver      = "spray repo"                   at "http://repo.spray.io"
 
@@ -22,7 +21,6 @@ object ResolversPlugin extends AutoPlugin {
       DefaultMavenRepository,
       Resolver.defaultLocal,
       Resolver.mavenLocal,
-      scalaz,
       typeSafeResolver,
       sprayResolver,
       bintraySbtResolver

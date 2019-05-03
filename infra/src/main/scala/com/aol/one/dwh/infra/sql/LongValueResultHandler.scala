@@ -10,7 +10,8 @@ package com.aol.one.dwh.infra.sql
 
 import java.sql.ResultSet
 import org.apache.commons.dbutils.ResultSetHandler
-import scalaz.syntax.std.boolean._
+
+import scala.util.Try
 
 class LongValueResultHandler extends ResultSetHandler[Option[Long]] {
 
@@ -18,8 +19,6 @@ class LongValueResultHandler extends ResultSetHandler[Option[Long]] {
 
   override def handle(resultSet: ResultSet): Option[Long] = {
     resultSet.next()
-      .option(resultSet)
-      .flatMap(rs => Option(rs.getObject(VALUE_INDEX))
-        .map(_ => rs.getLong(VALUE_INDEX)))
+    Try(resultSet.getLong(VALUE_INDEX)).toOption
   }
 }
