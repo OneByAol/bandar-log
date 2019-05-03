@@ -15,9 +15,7 @@ class ListStringResultHandler(numberOfPartitions: Int, format: String) extends R
     .takeWhile(identity)
     .map { _ => getColumnValues(numberOfPartitions, resultSet) }.toList
 
-    val maxValue = parseValuesToTimestamp(result, format)
-
-    maxValue
+    parseValuesToTimestamp(result, format)
   }
 
   private def getColumnValues(numberOfPartitions: Int, resultSet: ResultSet): String = {
@@ -32,5 +30,4 @@ class ListStringResultHandler(numberOfPartitions: Int, format: String) extends R
       .map(value => StringToTimestampParser.parse(value, format))
       .max
   }
-
 }
