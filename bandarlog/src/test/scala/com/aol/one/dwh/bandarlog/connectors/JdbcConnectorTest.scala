@@ -61,7 +61,6 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
 
     assert(result == resultValue)
   }
-
 }
 
 class DefaultJdbcConnector(connectionPool: HikariConnectionPool) extends JdbcConnector(connectionPool) {

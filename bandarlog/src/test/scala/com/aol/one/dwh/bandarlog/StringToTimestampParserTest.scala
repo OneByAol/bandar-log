@@ -15,5 +15,4 @@ class StringToTimestampParserTest extends FunSuite {
 
     assert(expectedResult equals actualResult)
   }
-
 }

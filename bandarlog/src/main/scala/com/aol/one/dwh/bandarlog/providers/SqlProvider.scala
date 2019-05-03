@@ -29,7 +29,6 @@ class SqlTimestampProvider(connector: JdbcConnector, query: Query) extends Times
 
   override def provide(): Value[Timestamp] = {
     AtomicValue(connector.runQuery(query, QueryResulthandler.get(query)))
-
   }
 }
 

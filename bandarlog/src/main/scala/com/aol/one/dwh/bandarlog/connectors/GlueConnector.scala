@@ -140,7 +140,6 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     }
 
     formattedValues.map(_.getOrElse(0L)).max
-
   }
 
   private def filterPartitions(columnNames: List[String], data: Map[String, String], tableName: String): Map[String, String] = {

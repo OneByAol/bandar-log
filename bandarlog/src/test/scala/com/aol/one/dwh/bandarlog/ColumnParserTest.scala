@@ -14,5 +14,4 @@ class ColumnParserTest extends FunSuite {
 
     assert(expectedResult equals actualResult)
   }
-
 }
