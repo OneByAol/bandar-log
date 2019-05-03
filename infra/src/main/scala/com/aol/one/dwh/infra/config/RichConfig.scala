@@ -226,7 +226,7 @@ object RichConfig {
             val toTable = obj.toConfig.getOptionalString("out-table").getOrElse("")
             val toColumn = obj.toConfig.getOptionalStringList("out-columns").getOrElse(List(""))
 
-            if(fromColumn.length > 1 && toColumn.length > 1) {
+            if (fromColumn.length > 1 && toColumn.length > 1) {
               throw new IllegalArgumentException(s"Incorrect config. For column type:[$columnType] should be provided one column.")
             }
 
