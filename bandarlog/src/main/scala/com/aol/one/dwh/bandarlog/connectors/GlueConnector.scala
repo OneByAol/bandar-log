@@ -132,14 +132,10 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
       .map(data => filterPartitions(columnNames, data, tableName))
 
     val jointPartitionsValues = filteredPartitionsData.map(_.values.mkString(":"))
-    val formattedValues = for {
-      value <- jointPartitionsValues
-      longValue = StringToTimestampParser.parse(value, format)
-    } yield {
-      longValue
-    }
 
-    formattedValues.map(_.getOrElse(0L)).max
+    jointPartitionsValues
+      .map(value => StringToTimestampParser.parse(value, format))
+      .map(_.getOrElse(0L)).max
   }
 
   private def filterPartitions(columnNames: List[String], data: Map[String, String], tableName: String): Map[String, String] = {
