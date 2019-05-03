@@ -2,9 +2,9 @@ package com.aol.one.dwh.infra.sql
 
 import com.aol.one.dwh.infra.config.Table
 
-object SQLGenerator {
+object SqlGenerator {
 
-  def generateSql(table: Table): String = {
+  def generate(table: Table): String = {
     table.formats match {
       case Some(_) =>
         val columns = table.columns.mkString(", ")
