@@ -41,13 +41,13 @@ trait VerticaQuery extends Query {
 }
 
 case class VerticaMaxValuesQuery(table: Table) extends VerticaQuery {
-  override def sql: String = SQLGenerator.generateSql(table)
+  override def sql: String = SqlGenerator.generate(table)
 
   override def settings: Seq[Setting] = Seq.empty
 }
 
 case class PrestoMaxValuesQuery(table: Table) extends PrestoQuery {
-  override def sql: String = SQLGenerator.generateSql(table)
+  override def sql: String = SqlGenerator.generate(table)
 
   override def settings: Seq[Setting] = Seq(Setting("optimize_metadata_queries", "true"))
 }
