@@ -41,6 +41,7 @@ object Dependencies {
   val awsGlue               = "com.amazonaws"         % "aws-java-sdk-glue"            % V.awsGlue
   val kafka4scala           = "org.apache.kafka"      %% "kafka"                       % V.kafka
   val kafkaClients          = "org.apache.kafka"      %  "kafka-clients"               % V.kafka
+  val metricsApi            = "com.pagerduty"         %% "metrics-api"                 % V.pdMetrics
   val ddMetrics             = "com.pagerduty"         %% "metrics-dogstatsd"           % V.pdMetrics
 
   val scalaTest             = "org.scalatest"         %% "scalatest"                   % V.scalatest     % Test

@@ -49,10 +49,13 @@ lazy val `infra` = project
         scalaArm,
         scalaz,
         awsGlue,
-        scalaCache,
+        scalaCache)
+      ++ Seq(
         kafka4scala,
-        kafkaClients
-      )
+        kafkaClients)
+      ++ Seq(
+        metricsApi,
+        ddMetrics)
   )
 
 lazy val `bandarlog` = project
@@ -69,7 +72,6 @@ lazy val `bandarlog` = project
       Seq(
         scalaTest,
         mockito,
-        ddMetrics,
         scalaCache
       ),
 
