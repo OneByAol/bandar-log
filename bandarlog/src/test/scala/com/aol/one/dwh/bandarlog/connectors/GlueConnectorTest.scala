@@ -7,23 +7,35 @@
 */
 
 package com.aol.one.dwh.bandarlog.connectors
-
-import com.aol.one.dwh.infra.config.GlueConfig
+import com.aol.one.dwh.infra.config._
 import org.mockito.Mockito.when
 import org.scalatest.FunSuite
 import org.scalatest.mock.MockitoSugar
 
+import scala.concurrent.duration._
+
 class GlueConnectorTest extends FunSuite with MockitoSugar {
 
-  private val config = mock[GlueConfig]
+  private val config = GlueConfig("eu-central-1", "default", "accessKey", "secretKey", 5, 2, 10.seconds)
   private val glueConnector = mock[GlueConnector]
 
   test("Check max batchId from glue metadata tables") {
     val resultValue = 100L
+    val numericTable = Table("table", List("column"), None)
+    when(glueConnector.getMaxPartitionValue(numericTable)).thenReturn(resultValue)
 
-    when(glueConnector.getMaxBatchId("table", "column")).thenReturn(resultValue)
+    val result = glueConnector.getMaxPartitionValue(numericTable)
 
-    val result = glueConnector.getMaxBatchId("table", "column")
+    assert(result == resultValue)
+  }
+
+  test("Check max date partitions' value from glue metadata table") {
+    val resultValue = 15681377656L
+    val datetimeTable = Table("table", List("year", "month", "day"), Some(List("yyyy", "MM", "dd")))
+    when(glueConnector.getMaxPartitionValue(datetimeTable)).thenReturn(resultValue)
+
+    val result = glueConnector.getMaxPartitionValue(datetimeTable)
+
     assert(result == resultValue)
   }
 }

@@ -99,9 +99,20 @@ case class ReportConfig(prefix: String, interval: Int)
 case class Topic(id: String, values: Set[String], groupId: String)
 
 /**
-  * Pair of Sql table and column
+  * Sql table with columns
+  * @param table - table name
+  * @param columns - columns' names
+  * @param formats - format of columns (e.g., YYYY, MM, DD, HH:MM:SS) for datetime column
   */
-case class TableColumn(table: String, column: String)
+case class Table(table: String, columns: List[String], formats: Option[List[String]])
+
+/**
+  * Partition column
+  *
+  * @param columnName - partition name
+  * @param format     - date type column format
+  */
+case class DatetimePatition(columnName: String, columnFormat: String)
 
 /**
   * Reporter Tag

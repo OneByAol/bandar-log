@@ -38,6 +38,8 @@ class BandarlogsFactoryTest extends FunSuite with MockitoSugar {
         |
         |    bandarlog-type = $bandarlogType
         |
+        |    column-type = "default"
+        |
         |    metrics = ["IN", "OUT", "LAG"]
         |
         |    reporters = [

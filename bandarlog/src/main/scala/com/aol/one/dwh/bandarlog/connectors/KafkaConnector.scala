@@ -52,5 +52,4 @@ class KafkaConnector(kafkaCluster: KafkaCluster) extends LogTrait {
       case Right(r) => Some(r)
     }
   }
-
 }

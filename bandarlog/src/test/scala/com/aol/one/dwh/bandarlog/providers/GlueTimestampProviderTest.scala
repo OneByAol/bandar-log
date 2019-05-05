@@ -9,7 +9,7 @@
 package com.aol.one.dwh.bandarlog.providers
 
 import com.aol.one.dwh.bandarlog.connectors.GlueConnector
-import com.aol.one.dwh.infra.config.TableColumn
+import com.aol.one.dwh.infra.config.Table
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.FunSuite
@@ -17,13 +17,13 @@ import org.scalatest.mock.MockitoSugar
 
 class GlueTimestampProviderTest extends FunSuite with MockitoSugar{
 
-  private val table = mock[TableColumn]
+  private val table = mock[Table]
   private val glueConnector = mock[GlueConnector]
   private val glueTimestampProvider = new GlueTimestampProvider(glueConnector, table)
 
   test("check timestamp value by glue connector and table") {
     val glueTimestamp = 1533709910004L
-    when(glueConnector.getMaxBatchId(any(), any())).thenReturn(glueTimestamp)
+    when(glueConnector.getMaxPartitionValue(any())).thenReturn(glueTimestamp)
 
     val result = glueTimestampProvider.provide()
 
@@ -31,7 +31,7 @@ class GlueTimestampProviderTest extends FunSuite with MockitoSugar{
   }
 
   test("return zero if partition column does not have values") {
-    when(glueConnector.getMaxBatchId(any(), any())).thenReturn(0)
+    when(glueConnector.getMaxPartitionValue(any())).thenReturn(0)
 
     val result = glueTimestampProvider.provide()
 

@@ -9,16 +9,16 @@
 package com.aol.one.dwh.bandarlog.providers
 
 import com.aol.one.dwh.bandarlog.connectors.JdbcConnector
-import com.aol.one.dwh.infra.sql.Query
+import com.aol.one.dwh.infra.config.Table
+import com.aol.one.dwh.infra.sql.{Query, VerticaMaxValuesQuery}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.FunSuite
 import org.scalatest.mock.MockitoSugar
 
-
 class SqlTimestampProviderTest extends FunSuite with MockitoSugar {
 
-  private val query = mock[Query]
+  private val query = VerticaMaxValuesQuery(Table("table", List("column"), None))
   private val jdbcConnector = mock[JdbcConnector]
   private val sqlTimestampProvider = new SqlTimestampProvider(jdbcConnector, query)
 

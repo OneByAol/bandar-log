@@ -47,10 +47,10 @@ lazy val `infra` = project
         scopt,
         hikariPool,
         scalaArm,
-        scalaz,
         awsGlue,
         scalaCache,
-        commonsLang)
+        commonsLang,
+        parserCombinators)
       ++ Seq(
         kafka4scala,
         kafkaClients)

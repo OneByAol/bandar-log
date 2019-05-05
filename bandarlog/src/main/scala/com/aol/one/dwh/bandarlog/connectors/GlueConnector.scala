@@ -13,7 +13,8 @@ import java.util.concurrent.Executors
 import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider, BasicAWSCredentials}
 import com.amazonaws.services.glue.AWSGlueClient
 import com.amazonaws.services.glue.model.{GetPartitionsRequest, GetTableRequest, Partition, Segment}
-import com.aol.one.dwh.infra.config.GlueConfig
+import com.aol.one.dwh.infra.config._
+import com.aol.one.dwh.infra.parser.StringToTimestampParser
 import com.aol.one.dwh.infra.util.LogTrait
 
 import scala.annotation.tailrec
@@ -45,22 +46,21 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     *
     * @param tableName  - table name
     * @param columnName - column name
-    * @return - max value in partition column (max batchId)
+    * @return           - max value in partition column (max batchId)
     */
-  def getMaxBatchId(tableName: String, columnName: String): Long = {
+  def getMaxPartitionValue(table: Table): Long = {
     implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(threadPool)
 
     val futures = (0 until segmentTotalNumber) map { number =>
       Future {
-        getMaxBatchIdPerSegment(
-          tableName,
-          columnName,
+        getMaxValuePerSegment(
+          table,
           number)
       }
     }
-    val maxBatchId: Long = Await.result(Future.sequence(futures), config.maxWaitTimeout).max
-    logger.info(s"Max batchId in table $tableName is: $maxBatchId")
-    maxBatchId
+    val maxValue: Long = Await.result(Future.sequence(futures), config.maxWaitTimeout).max
+    logger.info(s"Max value in table ${table.table} is: $maxValue")
+    maxValue
   }
 
   private def createPartitionsRequest(config: GlueConfig, tableName: String): GetPartitionsRequest = {
@@ -80,7 +80,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     * Fetches list of names of partition columns in table
     *
     * @param tableName - table name
-    * @return - list of names of partition columns
+    * @return          - list of names of partition columns
     */
   private def getPartitionColumns(tableName: String): List[String] = {
     val tableRequest = new GetTableRequest
@@ -90,14 +90,14 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
   }
 
   /**
-    * Calculates max value in Partition list returned from a single request
+    * Calculates max value in numeric Partition list returned from a single request
     *
     * @param tableName   - table name
     * @param tableColumn - column name
     * @param partitions  - list of Partitions
-    * @return - max value in Partition list
+    * @return            - max value in Partition list
     */
-  private def partialMax(tableName: String, tableColumn: String, partitions: List[Partition]): Long = {
+  private def partialNumericMax(tableName: String, tableColumn: String, partitions: List[Partition]): Long = {
     val columns = getPartitionColumns(tableName)
     val values = partitions.map(_.getValues)
 
@@ -113,15 +113,47 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
   }
 
   /**
+    * Calculates max value in nonnumeric Partition list returned from a single request
+    * @param tableName    - table name
+    * @param columnNames  - column names
+    * @param formats      - format for parsing date values in partitions
+    * @param partitions   - list of Partitions
+    * @return             - max value in Partition list
+    */
+  private def partialDatetimeMax(tableName: String, columnNames: List[String], formats: List[String], partitions: List[Partition]): Long = {
+    val allPartitions = getPartitionColumns(tableName)
+    val values = partitions.map(_.getValues)
+    val format = formats.mkString(":")
+
+    val partitionsData = values
+      .map(value => allPartitions.zip(value).toMap)
+
+    val filteredPartitionsData = partitionsData
+      .map(data => filterPartitions(columnNames, data, tableName))
+
+    val jointPartitionsValues = filteredPartitionsData.map(_.values.mkString(":"))
+
+    jointPartitionsValues
+      .map(value => StringToTimestampParser.parse(value, format))
+      .map(_.getOrElse(0L)).max
+  }
+
+  private def filterPartitions(columnNames: List[String], data: Map[String, String], tableName: String): Map[String, String] = {
+    columnNames.map { columnName =>
+      columnName -> data.getOrElse(columnName, throw new IllegalArgumentException(s"Column $columnName not found in table $tableName.")) }.toMap
+  }
+
+  /**
     * Calculates max value in Partition list in one segment of table
     *
     * @param tableName     - table name
     * @param columnName    - column name
     * @param segmentNumber - index number of the segment
-    * @return - max value in Partition list in one segment of table
+    * @return              - max value in Partition list in one segment of table
     */
-  private def getMaxBatchIdPerSegment(tableName: String, columnName: String, segmentNumber: Int): Long = {
-    val request = createPartitionsRequest(config, tableName)
+  private def getMaxValuePerSegment(table: Table, segmentNumber: Int): Long = {
+
+    val request = createPartitionsRequest(config, table.table)
     val segment = createSegment(segmentTotalNumber).withSegmentNumber(segmentNumber)
     val firstFetch = glueClient.getPartitions(request.withSegment(segment).withMaxResults(fetchSize)).getPartitions.toList
 
@@ -136,7 +168,15 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
         .getPartitions.toList
 
       if (partitions.nonEmpty) {
-        val maxValue = partialMax(tableName, columnName, partitions)
+        val maxValue = table.formats match {
+          case None => partialNumericMax(table.table, table.columns.head, partitions)
+          case Some(formats) =>
+            partialDatetimeMax(
+              table.table,
+              table.columns,
+              table.formats.get,
+              partitions)
+        }
         val result = previousMax.max(maxValue)
         maxBatchIdPerRequest(token, result, request, segment)
       } else {
@@ -145,7 +185,15 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
     }
 
     if (firstFetch.nonEmpty) {
-      val firstMax = partialMax(tableName, columnName, firstFetch)
+      val firstMax = table.formats match {
+        case None => partialNumericMax(table.table, table.columns.head, firstFetch)
+        case Some(formats) =>
+          partialDatetimeMax(
+            table.table,
+            table.columns,
+            table.formats.get,
+            firstFetch)
+      }
       val (_, max) = maxBatchIdPerRequest("", firstMax, request, segment)
       max
     } else {

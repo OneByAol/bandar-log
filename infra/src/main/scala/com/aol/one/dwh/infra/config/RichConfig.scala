@@ -8,7 +8,11 @@
 
 package com.aol.one.dwh.infra.config
 
+import com.aol.one.dwh.infra.parser.ColumnParser
+import com.aol.one.dwh.infra.sql.ColumnType._
+import com.aol.one.dwh.infra.util.LogTrait
 import com.typesafe.config.{Config, ConfigObject}
+
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
@@ -73,7 +77,7 @@ object RichConfig {
       }
   }
 
-  implicit class RichConfig(val underlying: Config) extends AnyRef {
+  implicit class RichConfig(val underlying: Config) extends AnyRef with LogTrait {
 
     def isEnabled: Boolean = {
       underlying.getOptionalBoolean("enabled").getOrElse(false)
@@ -203,12 +207,47 @@ object RichConfig {
       }
     }
 
-    def getTables: Seq[(TableColumn, TableColumn)] = {
+    def getTables: Seq[(Table, Table)] = {
       underlying.getObjectList("tables").map { obj =>
-        val fromTable = obj.toConfig.getOptionalString("in-table").map(_.split(":")).getOrElse(Array("", ""))
-        val toTable = obj.toConfig.getOptionalString("out-table").map(_.split(":")).getOrElse(Array("", ""))
 
-        (TableColumn(fromTable(0), fromTable(1)), TableColumn(toTable(0), toTable(1)))
+        val columnType = underlying.getString("column-type")
+
+        columnType match {
+          case DEFAULT =>
+            logger.warn("Deprecated. Use column-type `timestamp` instead.")
+            val fromTable = obj.toConfig.getOptionalString("in-table").map(_.split(":")).getOrElse(Array("", ""))
+            val toTable = obj.toConfig.getOptionalString("out-table").map(_.split(":")).getOrElse(Array("", ""))
+
+            (Table(fromTable(0), List(fromTable(1)), None), Table(toTable(0), List(toTable(1)), None))
+
+          case TIMESTAMP =>
+            val fromTable = obj.toConfig.getOptionalString("in-table").getOrElse("")
+            val fromColumn = obj.toConfig.getOptionalStringList("in-columns").getOrElse(List(""))
+            val toTable = obj.toConfig.getOptionalString("out-table").getOrElse("")
+            val toColumn = obj.toConfig.getOptionalStringList("out-columns").getOrElse(List(""))
+
+            if (fromColumn.length > 1 && toColumn.length > 1) {
+              throw new IllegalArgumentException(s"Incorrect config. For column type:[$columnType] should be provided one column.")
+            }
+
+            (Table(fromTable, fromColumn, None), Table(toTable, toColumn, None))
+
+          case DATETIME =>
+            val fromTable = obj.toConfig.getOptionalString("in-table").getOrElse("")
+            val fromColumns = obj.toConfig.getOptionalStringList("in-columns").map(ColumnParser.parseList).getOrElse(List(("", "")))
+            val fromColumnNames = fromColumns.map { case (column, format) => column }
+            val fromColumnFormats = fromColumns.map { case (column, format) => format }
+
+            val toTable = obj.toConfig.getOptionalString("out-table").getOrElse("")
+            val toColumns = obj.toConfig.getOptionalStringList("out-columns").map(ColumnParser.parseList).getOrElse(List(("", "")))
+            val toColumnNames = toColumns.map { case (column, format) => column }
+            val toColumnFormats = toColumns.map { case (column, format) => format }
+
+            (Table(fromTable, fromColumnNames, Some(fromColumnFormats)), Table(toTable, toColumnNames, Some(toColumnFormats)))
+
+          case _ =>
+            throw new IllegalArgumentException(s"Unsupported column type:[$columnType]")
+        }
       }
     }
 
@@ -221,5 +260,4 @@ object RichConfig {
       }
     }
   }
-
 }
