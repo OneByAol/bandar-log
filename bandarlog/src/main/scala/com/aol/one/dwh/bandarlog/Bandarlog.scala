@@ -9,9 +9,10 @@
 package com.aol.one.dwh.bandarlog
 
 import com.aol.one.dwh.bandarlog.metrics.MetricProvider
-import com.aol.one.dwh.bandarlog.reporters.MetricReporter
 import com.aol.one.dwh.bandarlog.scheduler.Scheduler
 import com.aol.one.dwh.infra.util.{ExceptionPrinter, LogTrait}
+import com.pagerduty.metrics.Metrics
+import org.apache.commons.lang3.exception.ExceptionUtils
 
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -24,7 +25,7 @@ import scala.util.control.NonFatal
   */
 class Bandarlog[V](
     providers: Seq[MetricProvider[V]],
-    reporters: Seq[MetricReporter],
+    reporters: Seq[Metrics],
     scheduler: Scheduler
   ) extends LogTrait with ExceptionPrinter {
 
@@ -39,14 +40,12 @@ class Bandarlog[V](
           metric.value.setValue(value.getValue)
         }.recover {
           case NonFatal(e) =>
-            logger.error("Catching exception {}", e.getStringStackTrace)
+            logger.error("Catching exception {}", ExceptionUtils.getStackTrace(e))
             metric.value.setValue(None)
         }
 
         logger.info(s"Metric:[${metric.prefix}.${metric.name}] Tags:[${metric.tags.mkString(",")}] Value:[${metric.value.getValue}]")
       })
-
-    reporters.foreach(_.start())
   }
 
   def shutdown(): Unit = {

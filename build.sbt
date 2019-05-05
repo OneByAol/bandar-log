@@ -49,7 +49,8 @@ lazy val `infra` = project
         scalaArm,
         scalaz,
         awsGlue,
-        scalaCache)
+        scalaCache,
+        commonsLang)
       ++ Seq(
         kafka4scala,
         kafkaClients)

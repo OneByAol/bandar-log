@@ -43,6 +43,7 @@ object Dependencies {
   val kafkaClients          = "org.apache.kafka"      %  "kafka-clients"               % V.kafka
   val metricsApi            = "com.pagerduty"         %% "metrics-api"                 % V.pdMetrics
   val ddMetrics             = "com.pagerduty"         %% "metrics-dogstatsd"           % V.pdMetrics
+  val commonsLang           = "org.apache.commons"    %  "commons-lang3"               % "3.9"
 
   val scalaTest             = "org.scalatest"         %% "scalatest"                   % V.scalatest     % Test
   val mockito               = "org.mockito"           % "mockito-core"                 % V.mockito       % Test
