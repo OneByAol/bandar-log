@@ -1,6 +1,6 @@
 /*
   ******************************************************************************
-  * Copyright 2018, Oath Inc.
+  * Copyright 2019, Oath Inc.
   * Licensed under the terms of the Apache Version 2.0 license.
   * See LICENSE file in project root directory for terms.
   ******************************************************************************
@@ -8,30 +8,24 @@
 
 package com.aol.one.dwh.bandarlog.reporters
 
+import java.net.InetAddress
+
 import com.aol.one.dwh.infra.config.{ReportConfig, ReporterConfig, Tag}
 import com.aol.one.dwh.infra.config.RichConfig._
-import com.codahale.metrics.MetricRegistry
+import com.pagerduty.metrics.Metrics
+import com.pagerduty.metrics.pdstats.DogstatsdMetrics
 import com.typesafe.config.Config
-import TagsFormatter.datadogFormat
 
-/**
-  * Base trait for all Metric Reporters
-  */
-trait MetricReporter {
+object ReporterBuilder {
 
-  def start(): Unit
-
-  def stop(): Unit
-}
-
-object MetricReporter {
-
-  def apply(reporter: ReporterConfig, tags: List[Tag], metricRegistry: MetricRegistry, mainConf: Config, reportConf: ReportConfig): MetricReporter = {
+  def build(reporter: ReporterConfig, tags: List[Tag], mainConf: Config, reportConf: ReportConfig): Metrics = {
     reporter.reporterType match {
       case "datadog" =>
-        val datadogTags = TagsFormatter.format(tags, datadogFormat)
+        val standardTags = tags.map(tag => tag.key -> tag.value)
         val datadogConfig = mainConf.getDatadogConfig(reporter.configId)
-        new DatadogMetricReporter(datadogConfig, datadogTags, metricRegistry, reportConf)
+        val hostname = datadogConfig.host.getOrElse(InetAddress.getLocalHost.getHostName)
+
+        new DogstatsdMetrics(reportConf.prefix, hostname, standardTags :_*)
       case _ =>
         throw new IllegalArgumentException(s"Unsupported reporter:[$reporter]")
     }
