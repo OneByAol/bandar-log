@@ -29,7 +29,4 @@ object CustomTags {
   * Transform tags according to format function
   */
 object TagsFormatter {
-  val datadogFormat: (Tag) => String = (tag: Tag) => s"${tag.key}:${tag.value}"
-
-  def format(tags: List[Tag], formatFun: Tag => String): List[String] = tags map formatFun
 }
