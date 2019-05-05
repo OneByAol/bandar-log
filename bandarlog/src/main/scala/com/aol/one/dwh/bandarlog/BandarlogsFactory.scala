@@ -11,12 +11,13 @@ package com.aol.one.dwh.bandarlog
 import com.aol.one.dwh.bandarlog.connectors.KafkaConnector
 import com.aol.one.dwh.bandarlog.metrics._
 import com.aol.one.dwh.bandarlog.providers.ProviderFactory
-import com.aol.one.dwh.bandarlog.reporters.{CustomTags, MetricReporter, RegistryFactory}
+import com.aol.one.dwh.bandarlog.reporters.{CustomTags, ReporterBuilder}
 import com.aol.one.dwh.bandarlog.scheduler.Scheduler
 import com.aol.one.dwh.infra.config.RichConfig._
 import com.aol.one.dwh.infra.kafka.KafkaCluster
 import com.aol.one.dwh.infra.sql.pool.ConnectionPoolHolder
 import com.aol.one.dwh.infra.util.{ExceptionPrinter, LogTrait}
+import com.pagerduty.metrics.Metrics
 import com.typesafe.config.Config
 
 import scala.collection.JavaConversions._
@@ -87,9 +88,17 @@ class BandarlogsFactory(mainConfig: Config) extends LogTrait with ExceptionPrint
   private def createReporters[V](bandarlogConf: Config, metrics: Seq[Metric[V]]) = {
     metrics.flatMap { metric =>
       val tags = metric.tags ++ CustomTags(bandarlogConf)
-      val metricRegistry = RegistryFactory.createWithMetric(metric)
 
-      bandarlogConf.getReporters.map(reporter => MetricReporter(reporter, tags, metricRegistry, mainConfig, bandarlogConf.getReportConfig))
+      bandarlogConf
+        .getReporters
+        .map { reporter => 
+          ReporterBuilder
+            .build(
+              reporter,
+              tags,
+              mainConfig,
+              bandarlogConf.getReportConfig)
+        }
     }
   }
 }
