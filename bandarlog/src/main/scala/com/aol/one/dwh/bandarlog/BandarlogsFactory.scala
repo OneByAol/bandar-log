@@ -91,7 +91,7 @@ class BandarlogsFactory(mainConfig: Config) extends LogTrait with ExceptionPrint
 
       bandarlogConf
         .getReporters
-        .map { reporter => 
+        .map { reporter =>
           ReporterBuilder
             .build(
               reporter,

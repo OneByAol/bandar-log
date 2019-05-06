@@ -44,8 +44,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
   /**
     * Calculates value in partition column (max batchId), allowing multiple requests to segments to be executed in parallel
     *
-    * @param tableName  - table name
-    * @param columnName - column name
+    * @param table      - table object
     * @return           - max value in partition column (max batchId)
     */
   def getMaxPartitionValue(table: Table): Long = {
@@ -146,8 +145,7 @@ class GlueConnector(config: GlueConfig) extends LogTrait {
   /**
     * Calculates max value in Partition list in one segment of table
     *
-    * @param tableName     - table name
-    * @param columnName    - column name
+    * @param table         - table object
     * @param segmentNumber - index number of the segment
     * @return              - max value in Partition list in one segment of table
     */

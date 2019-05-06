@@ -25,7 +25,7 @@ object ReporterBuilder {
         val datadogConfig = mainConf.getDatadogConfig(reporter.configId)
         val hostname = datadogConfig.host.getOrElse(InetAddress.getLocalHost.getHostName)
 
-        new DogstatsdMetrics(reportConf.prefix, hostname, standardTags :_*)
+        new DogstatsdMetrics(reportConf.prefix, hostname, standardTags : _*)
       case _ =>
         throw new IllegalArgumentException(s"Unsupported reporter:[$reporter]")
     }
