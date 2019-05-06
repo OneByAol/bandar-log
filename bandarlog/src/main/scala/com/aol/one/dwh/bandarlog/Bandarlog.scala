@@ -45,6 +45,19 @@ class Bandarlog[V](
         }
 
         logger.info(s"Metric:[${metric.prefix}.${metric.name}] Tags:[${metric.tags.mkString(",")}] Value:[${metric.value.getValue}]")
+
+        reporters.foreach { reporter =>
+          val gaugeName = s"${metric.prefix}.${metric.name}"
+          val gaugeTags = metric.tags.map { tag => tag.key -> tag.value}
+
+          metric.value.getValue.foreach {
+            case value: Long =>
+              reporter.gauge(gaugeName, value, gaugeTags: _*)
+              logger.trace(s"Metric:[${metric.prefix}.${metric.name}] reported.")
+            case _ =>
+              logger.warn(s"Metric:[${metric.prefix}.${metric.name}] is of type ${metric.value.getValue.get.getClass} which could not be reported.")
+          }
+        }
       })
   }
 
