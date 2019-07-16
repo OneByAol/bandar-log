@@ -38,6 +38,7 @@ class KafkaConnector(kafkaCluster: KafkaCluster) extends LogTrait {
   def getHeads(topic: Topic): Option[KafkaHeads] = {
     kafkaCluster.getLatestOffsets(topic.groupId, topic.values) match {
       case Left(l) =>
+        l.printStackTrace
         logger.error(s"Cannot obtain leaders offsets for topic:[${topic.values}], cause {}", l.toString)
         None
       case Right(r) => Some(r.map { case (key, value) => key -> value })
