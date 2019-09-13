@@ -128,7 +128,7 @@ object RichConfig {
       val kafkaConfig = underlying.getConfig(configId)
 
       KafkaConfig(
-        kafkaConfig.getString("zk-quorum"),
+        kafkaConfig.getOptionalString("zk-quorum"),
         kafkaConfig.getOptionalString("brokers"),
         kafkaConfig.getOptionalDuration("response-timeout"),
         kafkaConfig.getOptionalDuration("caching-time")

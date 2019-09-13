@@ -40,7 +40,8 @@ abstract class KafkaCluster extends AutoCloseable {
 
   /**
     * Get and cache partition and offset metadata for particular consumer group
-    * @param groupId  - consumer group id
+    *
+    * @param groupId - consumer group id
     * @return
     */
   private def getKafkaMetadata(groupId: String): Future[Map[TopicPartition, OffsetAndMetadata]] = {
@@ -58,8 +59,9 @@ abstract class KafkaCluster extends AutoCloseable {
 
   /**
     * Get offsets for particular consumer group
-    * @param groupId  - consumer group id
-    * @param topics   - topic names
+    *
+    * @param groupId - consumer group id
+    * @param topics  - topic names
     * @return
     */
   def getConsumerOffsets(groupId: String, topics: Set[String]): Either[Throwable, Map[TopicAndPartition, Offset]] = {
@@ -78,8 +80,9 @@ abstract class KafkaCluster extends AutoCloseable {
     * Get latest records offsets for particular consumer group.
     * Consumer API method guarantees it does not change the current consumer position of the partitions.
     * See [[org.apache.kafka.clients.consumer.KafkaConsumer#endOffsets(java.util.Collection)]]
-    * @param groupId  - consumer group id
-    * @param topics   - topic names
+    *
+    * @param groupId - consumer group id
+    * @param topics  - topic names
     * @return
     */
   def getLatestOffsets(groupId: String, topics: Set[String]): Either[Throwable, Map[TopicAndPartition, Offset]] = {
@@ -92,7 +95,7 @@ abstract class KafkaCluster extends AutoCloseable {
             .get
             .keySet
             .filter { tp => topics.contains(tp.topic()) }
-            .map {tp => new TopicPartition(tp.topic, tp.partition)}
+            .map { tp => new TopicPartition(tp.topic, tp.partition) }
             .asJavaCollection
         val offsets: Map[TopicAndPartition, Long] =
           consumer
@@ -120,13 +123,15 @@ object KafkaCluster {
 
   def apply(config: KafkaConfig): KafkaCluster = {
     val brokers: String = {
+      lazy val brokersFromZK = config.zookeeperQuorum.map(zookeeperQ => {
+        val zkClient = KafkaZkClient(zookeeperQ, isSecure = false, Integer.MAX_VALUE, Integer.MAX_VALUE, 10, new SystemTime())
+        val endpoints = zkClient.getAllBrokersInCluster.flatMap(_.endPoints)
+        zkClient.close()
+        endpoints.map { endpoint => s"${endpoint.host}:${endpoint.port}" }.mkString(",")
+      })
 
-      val zkClient = KafkaZkClient(config.zookeeperQuorum, isSecure = false, Integer.MAX_VALUE, Integer.MAX_VALUE, 10, new SystemTime())
-      val endpoints = zkClient.getAllBrokersInCluster.flatMap(_.endPoints)
-      val brokersFromZK = endpoints.map{ endpoint => s"${endpoint.host}:${endpoint.port}"}.mkString(",")
-      zkClient.close()
-
-      config.brokers.getOrElse(brokersFromZK)
+      config.brokers.orElse(brokersFromZK)
+        .getOrElse(throw new IllegalArgumentException("No of configurations [brokers, brokers] is specified"))
     }
 
     new KafkaCluster {
