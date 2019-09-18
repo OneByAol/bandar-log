@@ -71,8 +71,7 @@ In Bandar-Log data source is represented by configuration object called `data so
 _Kafka data source configuration:_
 ```
 kafka-config {                   # kafka configuration id (can be any id)
-  brokers = null                 # default list of brokers, currently is disabled and taken from zookeeper
-  zk-quorum = "1.1.1.1:2181"     # zookeeper servers
+  brokers = 1.1.1.1:9092         # default list of brokers
 }
 
 example-bandarlog {
