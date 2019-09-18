@@ -5,13 +5,11 @@ import java.util.Properties
 import com.aol.one.dwh.infra.config.KafkaConfig
 import com.google.common.cache.CacheBuilder
 import kafka.common.TopicAndPartition
-import kafka.zk.KafkaZkClient
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer, OffsetAndMetadata}
 import org.apache.kafka.clients.{CommonClientConfigs, admin}
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.StringDeserializer
-import org.apache.kafka.common.utils.SystemTime
 import scalacache.ScalaCache
 import scalacache.guava.GuavaCache
 import scalacache.memoization._
@@ -122,21 +120,9 @@ object KafkaCluster {
   private val defaultCachingTime = 10 seconds
 
   def apply(config: KafkaConfig): KafkaCluster = {
-    val brokers: String = {
-      lazy val brokersFromZK = config.zookeeperQuorum.map(zookeeperQ => {
-        val zkClient = KafkaZkClient(zookeeperQ, isSecure = false, Integer.MAX_VALUE, Integer.MAX_VALUE, 10, new SystemTime())
-        val endpoints = zkClient.getAllBrokersInCluster.flatMap(_.endPoints)
-        zkClient.close()
-        endpoints.map { endpoint => s"${endpoint.host}:${endpoint.port}" }.mkString(",")
-      })
-
-      config.brokers.orElse(brokersFromZK)
-        .getOrElse(throw new IllegalArgumentException("No of configurations [brokers, brokers] is specified"))
-    }
-
     new KafkaCluster {
-      override val adminClient: AdminClient = createAdminClient(brokers)
-      override val consumer: KafkaConsumer[String, String] = createConsumer(brokers)
+      override val adminClient: AdminClient = createAdminClient(config.brokers)
+      override val consumer: KafkaConsumer[String, String] = createConsumer(config.brokers)
       override val kafkaAwaitingTimeout: Duration = config.kafkaResponseTimeout.getOrElse(defaultKafkaResponseTimeout)
       override val cacheInvalidationTimeout: Duration = config.cacheResultsTime.getOrElse(defaultCachingTime)
     }

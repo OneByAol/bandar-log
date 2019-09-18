@@ -9,7 +9,7 @@ ThisBuild / crossPaths := false
 ThisBuild / updateOptions := updateOptions.value.withCachedResolution(cachedResoluton = true)
 
 ThisBuild / organization := "com.aol.one.dwh"
-ThisBuild / version := s"2.0.$buildNumber"
+ThisBuild / version := s"3.0.$buildNumber"
 
 // Projects
 val `bandar-log` = project.in(file("."))

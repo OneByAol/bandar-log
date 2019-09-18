@@ -14,15 +14,13 @@ import scala.concurrent.duration._
 /**
   * Kafka configuration
   *
-  * @param zookeeperQuorum        - zookeeper connection string (host:port)
   * @param brokers                - kafka brokers list
   * @param kafkaResponseTimeout   - for how long to wait for response from Kafka
   * @param cacheResultsTime       - for how long to cache Kafka metadata
   *
   */
 case class KafkaConfig(
-  zookeeperQuorum: Option[String],
-  brokers: Option[String],
+  brokers: String,
   kafkaResponseTimeout: Option[Duration],
   cacheResultsTime: Option[Duration]
 )
