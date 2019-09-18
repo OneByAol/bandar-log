@@ -22,7 +22,7 @@ object V {
   val scalatest           = "3.0.7"
   val mockito             = "1.10.19"
   val awsGlue             = "1.11.388"
-  val kafka               = "2.2.1"
+  val kafka               = "2.2.0"
   val parser              = "1.1.2"
 }
 
