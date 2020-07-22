@@ -28,7 +28,10 @@ object DockerSupportPlugin extends AutoPlugin {
     packageName := s"$organizationName/${packageName.value}",
     mappings in Universal ++= {
     val dir = baseDirectory.value / "scripts"
+    (( dir * "*") pair rebase(dir, "bin/")) } ++ {
+    val dir = baseDirectory.value / "conf"
     (( dir * "*") pair rebase(dir, "bin/"))
+      
   })
 
 }
