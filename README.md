@@ -205,9 +205,9 @@ tables = [                                                 # example of config f
   },
   { 
     in-table = "in_table_n"
-    in-columns = ["date=YYYY-MM-DD-HH"] 
+    in-columns = ["date=yyyy-MM-dd HH:mm:ss"] 
     out-table = "out_table_n"
-    out-columns = ["date=YYYY-MM-DD-HH"]
+    out-columns = ["date=yyyy-MM-dd HH:mm:ss"]
   }, 
   ...
 ]
