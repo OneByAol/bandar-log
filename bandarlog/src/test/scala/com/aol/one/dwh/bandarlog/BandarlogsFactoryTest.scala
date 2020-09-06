@@ -84,7 +84,7 @@ class BandarlogsFactoryTest extends FunSuite with MockitoSugar {
         |  }
         |}
       """.stripMargin
-    )
+    ).resolve
   }
 
   test("filter disabled bandarlogs") {
