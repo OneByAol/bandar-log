@@ -40,7 +40,7 @@ object AppConfig extends LogTrait {
     val consulClient = new ConsulClient(params.consulHost, params.consulPort)
     val consulManager = new ConsulManager(consulClient)
     logger.info(s"Fetching config from consul [${params.consulConfigPath}]...")
-    consulManager.getFlag(params.consulConfigPath).map(ConfigFactory.parseString)
+    consulManager.getFlag(params.consulConfigPath).map(ConfigFactory.parseString).map(conf => conf.resolve)
       .getOrElse(throw new RuntimeException(s"Can't fetch config from consul [$params]"))
   }
 
@@ -51,7 +51,7 @@ object AppConfig extends LogTrait {
     lazy val from = if (isUrl(path)) Source.fromURL(path) else Source.fromFile(path)
 
     val confStr = for (resource <- managed(from)) yield resource.mkString
-    confStr.tried.toOption.map(ConfigFactory.parseString)
+    confStr.tried.toOption.map(ConfigFactory.parseString).map(conf => conf.resolve)
       .getOrElse(throw new RuntimeException(s"Can't fetch config from path [$params]"))
   }
 

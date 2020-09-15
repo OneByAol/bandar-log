@@ -100,7 +100,7 @@ case class Topic(id: String, values: Set[String], groupId: String)
   * Sql table with columns
   * @param table - table name
   * @param columns - columns' names
-  * @param formats - format of columns (e.g., YYYY, MM, DD, HH:MM:SS) for datetime column
+  * @param formats - format of columns (e.g., yyyy, MM, dd, HH:mm:ss) for datetime column
   */
 case class Table(table: String, columns: List[String], formats: Option[List[String]])
 
