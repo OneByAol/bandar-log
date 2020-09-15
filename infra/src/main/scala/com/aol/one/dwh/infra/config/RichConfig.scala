@@ -265,11 +265,11 @@ object RichConfig {
       }
     }
 
-    private def getFilters(filtersKey: String, config: ConfigObject): Option[Map[String, String]] = {
-      config.toConfig.getOptionalConfig(filtersKey).map { filterConfig =>
-        filterConfig.entrySet().map { entry =>
-          entry.getKey -> entry.getValue.unwrapped().toString
-        }.toMap
+    private def getFilters(filtersKey: String, config: ConfigObject): Option[List[Filter]] = {
+      config.toConfig.getOptionalObjectList(filtersKey).map { filterConfig =>
+        filterConfig.map(_.toConfig).map { filter =>
+          Filter(filter.getString("key"), filter.getString("value"), filter.getBoolean("quoted"))
+        }
       }
     }
   }

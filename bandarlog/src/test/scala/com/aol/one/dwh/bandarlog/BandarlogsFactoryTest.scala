@@ -75,13 +75,25 @@ class BandarlogsFactoryTest extends FunSuite with MockitoSugar {
         |      {
         |        in-table = "in_table_1:column"
         |        out-table = "out_table_1:column"
-        |        in-filters = {
-        |          string_column = "'value'"
-        |          double_column = 0.1
-        |        }
-        |        out-filters = {
-        |          int_column = 1
-        |        }
+        |        in-filters = [
+        |          {
+        |            quoted = true
+        |            key = "string_column"
+        |            value = "value"
+        |          },
+        |          {
+        |            quoted = false
+        |            key = "double_column"
+        |            value = 0.1
+        |          }
+        |        ]
+        |        out-filters = [
+        |          {
+        |            quoted = false
+        |            key = "int_column"
+        |            value = 1
+        |          }
+        |        ]
         |      },
         |      {
         |        in-table = "in_table_2:column"

@@ -47,12 +47,13 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
 
   test("check run query result for numeric batch_id column with filter") {
     val resultValue = 100L
-    val table = Table("table", List("column"), Some(Map("string_col" -> "'value'", "int_col" -> "value")), None)
+    val filters = List(Filter("string_col", "value", quoted = true), Filter("int_col", "1", quoted = false))
+    val table = Table("table", List("column"), Some(filters), None)
     val query = VerticaMaxValuesQuery(table)
     when(connectionPool.getConnection).thenReturn(connection)
     when(connectionPool.getName).thenReturn("connection_pool_name")
     when(connection.createStatement()).thenReturn(statement)
-    when(statement.executeQuery("SELECT MAX(column) AS column FROM table WHERE string_col = 'value' AND int_col = value"))
+    when(statement.executeQuery("SELECT MAX(column) AS column FROM table WHERE string_col = 'value' AND int_col = 1"))
       .thenReturn(resultSet)
     when(connection.getMetaData).thenReturn(databaseMetaData)
     when(databaseMetaData.getURL).thenReturn("connection_url")

@@ -102,7 +102,15 @@ case class Topic(id: String, values: Set[String], groupId: String)
   * @param columns - columns' names
   * @param formats - format of columns (e.g., yyyy, MM, dd, HH:mm:ss) for datetime column
   */
-case class Table(table: String, columns: List[String], filters: Option[Map[String, String]], formats: Option[List[String]])
+case class Table(table: String, columns: List[String], filters: Option[List[Filter]], formats: Option[List[String]])
+
+/**
+ * Filter for sql table
+ * @param key - column name
+ * @param value - column value
+ * @param quoted - if column is a string it should be quoted
+ */
+case class Filter(key: String, value: String, quoted: Boolean)
 
 /**
   * Partition column

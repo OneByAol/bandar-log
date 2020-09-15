@@ -1,6 +1,6 @@
 package com.aol.one.dwh.infra.sql
 
-import com.aol.one.dwh.infra.config.Table
+import com.aol.one.dwh.infra.config.{Filter, Table}
 
 object SqlGenerator {
 
@@ -15,7 +15,12 @@ object SqlGenerator {
     }
 
     table.filters.map { filters =>
-      s"$baseSql WHERE ${filters.map { case (column, value) => s"$column = $value" }.mkString(" AND ")}"
+      s"$baseSql WHERE ${filters.map(filter => s"${filter.key} = ${getValue(filter)}").mkString(" AND ")}"
     }.getOrElse(baseSql)
+  }
+
+  private def getValue(filter: Filter): String = {
+    if (filter.quoted) s"'${filter.value}'"
+    else filter.value
   }
 }
