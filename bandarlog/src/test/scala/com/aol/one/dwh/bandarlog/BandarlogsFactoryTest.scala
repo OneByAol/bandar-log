@@ -75,6 +75,12 @@ class BandarlogsFactoryTest extends FunSuite with MockitoSugar {
         |      {
         |        in-table = "in_table_1:column"
         |        out-table = "out_table_1:column"
+        |        in-filters = {
+        |          string_column = "'value'"
+        |        }
+        |        out-filters = {
+        |          int_column = "value"
+        |        }
         |      },
         |      {
         |        in-table = "in_table_2:column"
@@ -99,7 +105,6 @@ class BandarlogsFactoryTest extends FunSuite with MockitoSugar {
     val config = createConfig(enabled = true, bandarlogType = "sql")
 
     val resultBandarlogs = new BandarlogsFactory(config).create()
-
     assert(resultBandarlogs.size == 1)
   }
 

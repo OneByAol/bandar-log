@@ -102,13 +102,13 @@ case class Topic(id: String, values: Set[String], groupId: String)
   * @param columns - columns' names
   * @param formats - format of columns (e.g., yyyy, MM, dd, HH:mm:ss) for datetime column
   */
-case class Table(table: String, columns: List[String], formats: Option[List[String]])
+case class Table(table: String, columns: List[String], filters: Option[Map[String, String]], formats: Option[List[String]])
 
 /**
   * Partition column
   *
   * @param columnName - partition name
-  * @param format     - date type column format
+  * @param columnFormat - date type column format
   */
 case class DatetimePatition(columnName: String, columnFormat: String)
 
