@@ -77,9 +77,10 @@ class BandarlogsFactoryTest extends FunSuite with MockitoSugar {
         |        out-table = "out_table_1:column"
         |        in-filters = {
         |          string_column = "'value'"
+        |          double_column = 0.1
         |        }
         |        out-filters = {
-        |          int_column = "value"
+        |          int_column = 1
         |        }
         |      },
         |      {
