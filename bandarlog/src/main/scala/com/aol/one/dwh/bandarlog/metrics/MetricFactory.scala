@@ -25,14 +25,14 @@ class MetricFactory(provider: ProviderFactory) {
     ): Seq[MetricProvider[Long]] = metricId match {
 
     case IN =>
-      val tags = List(Tag("in_table", inTable.table), Tag("in_connector", inConnector.tag))
+      val tags = List(Tag("in_table", inTable.tag.getOrElse(inTable.table)), Tag("in_connector", inConnector.tag))
       val inMetric = AtomicMetric[Long](metricPrefix, "in_timestamp", tags)
       val inProvider = provider.create(inConnector, inTable)
       Seq(MetricProvider(inMetric, inProvider))
 
     case OUT =>
       outConnectors.map { outConnector =>
-        val tags = List(Tag("out_table", outTable.table), Tag("out_connector", outConnector.tag))
+        val tags = List(Tag("out_table", outTable.tag.getOrElse(outTable.table)), Tag("out_connector", outConnector.tag))
         val outMetric = AtomicMetric[Long](metricPrefix, "out_timestamp", tags)
         val outProvider = provider.create(outConnector, outTable)
         MetricProvider(outMetric, outProvider)
