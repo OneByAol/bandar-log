@@ -22,8 +22,8 @@ import org.scalatest.mock.MockitoSugar
 
 object SqlMetricFactoryTest {
   private val metricPrefix = "sql_prefix"
-  private val inTable = Table("in_test_table", List("in_test_column"), None)
-  private val outTable = Table("out_test_table", List("out_test_column"), None)
+  private val inTable = Table("in_test_table", List("in_test_column"), None, None)
+  private val outTable = Table("out_test_table", List("out_test_column"), None, None)
 }
 
 class SqlMetricFactoryTest extends FunSuite with MockitoSugar {

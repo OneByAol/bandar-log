@@ -21,7 +21,7 @@ class GlueConnectorTest extends FunSuite with MockitoSugar {
 
   test("Check max batchId from glue metadata tables") {
     val resultValue = 100L
-    val numericTable = Table("table", List("column"), None)
+    val numericTable = Table("table", List("column"), None, None)
     when(glueConnector.getMaxPartitionValue(numericTable)).thenReturn(resultValue)
 
     val result = glueConnector.getMaxPartitionValue(numericTable)
@@ -31,7 +31,7 @@ class GlueConnectorTest extends FunSuite with MockitoSugar {
 
   test("Check max date partitions' value from glue metadata table") {
     val resultValue = 15681377656L
-    val datetimeTable = Table("table", List("year", "month", "day"), Some(List("yyyy", "MM", "dd")))
+    val datetimeTable = Table("table", List("year", "month", "day"), None, Some(List("yyyy", "MM", "dd")))
     when(glueConnector.getMaxPartitionValue(datetimeTable)).thenReturn(resultValue)
 
     val result = glueConnector.getMaxPartitionValue(datetimeTable)

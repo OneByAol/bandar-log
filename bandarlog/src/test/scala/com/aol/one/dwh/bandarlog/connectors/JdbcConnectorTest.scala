@@ -30,7 +30,7 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
 
   test("check run query result for numeric batch_id column") {
     val resultValue = 100L
-    val table = Table("table", List("column"), None)
+    val table = Table("table", List("column"), None, None)
     val query = VerticaMaxValuesQuery(table)
     when(connectionPool.getConnection).thenReturn(connection)
     when(connectionPool.getName).thenReturn("connection_pool_name")
@@ -45,9 +45,28 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
     assert(result == resultValue)
   }
 
+  test("check run query result for numeric batch_id column with filter") {
+    val resultValue = 100L
+    val filters = List(Filter("string_col", "value", quoted = true), Filter("int_col", "1", quoted = false))
+    val table = Table("table", List("column"), Some(filters), None)
+    val query = VerticaMaxValuesQuery(table)
+    when(connectionPool.getConnection).thenReturn(connection)
+    when(connectionPool.getName).thenReturn("connection_pool_name")
+    when(connection.createStatement()).thenReturn(statement)
+    when(statement.executeQuery("SELECT MAX(column) AS column FROM table WHERE string_col = 'value' AND int_col = 1"))
+      .thenReturn(resultSet)
+    when(connection.getMetaData).thenReturn(databaseMetaData)
+    when(databaseMetaData.getURL).thenReturn("connection_url")
+    when(resultSetHandler.handle(resultSet)).thenReturn(resultValue)
+
+    val result = new DefaultJdbcConnector(connectionPool).runQuery(query, resultSetHandler)
+
+    assert(result == resultValue)
+  }
+
   test("check run query result for date/time partitions") {
     val resultValue = Some(20190924L)
-    val table = Table("table", List("year", "month", "day"), Some(List("yyyy", "MM", "dd")))
+    val table = Table("table", List("year", "month", "day"), None, Some(List("yyyy", "MM", "dd")))
     val query = VerticaMaxValuesQuery(table)
     when(connectionPool.getConnection).thenReturn(connection)
     when(connectionPool.getName).thenReturn("connection_pool_name")
