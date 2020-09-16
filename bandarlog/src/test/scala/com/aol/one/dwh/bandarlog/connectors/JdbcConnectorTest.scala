@@ -30,7 +30,7 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
 
   test("check run query result for numeric batch_id column") {
     val resultValue = 100L
-    val table = Table("table", List("column"), None, None)
+    val table = Table("table", List("column"), filters = None, formats = None, tag = None)
     val query = VerticaMaxValuesQuery(table)
     when(connectionPool.getConnection).thenReturn(connection)
     when(connectionPool.getName).thenReturn("connection_pool_name")
@@ -48,7 +48,7 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
   test("check run query result for numeric batch_id column with filter") {
     val resultValue = 100L
     val filters = List(Filter("string_col", "value", quoted = true), Filter("int_col", "1", quoted = false))
-    val table = Table("table", List("column"), Some(filters), None)
+    val table = Table("table", List("column"), Some(filters), formats = None, tag = None)
     val query = VerticaMaxValuesQuery(table)
     when(connectionPool.getConnection).thenReturn(connection)
     when(connectionPool.getName).thenReturn("connection_pool_name")
@@ -66,7 +66,7 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
 
   test("check run query result for date/time partitions") {
     val resultValue = Some(20190924L)
-    val table = Table("table", List("year", "month", "day"), None, Some(List("yyyy", "MM", "dd")))
+    val table = Table("table", List("year", "month", "day"), filters = None, Some(List("yyyy", "MM", "dd")), tag = None)
     val query = VerticaMaxValuesQuery(table)
     when(connectionPool.getConnection).thenReturn(connection)
     when(connectionPool.getName).thenReturn("connection_pool_name")

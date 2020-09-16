@@ -210,6 +210,7 @@ object RichConfig {
       underlying.getObjectList("tables").map { obj =>
 
       val columnType = obj.toConfig.getOptionalString("column-type").getOrElse("")
+      val tableTag = obj.toConfig.getOptionalString("tag")
 
       columnType match {
         case "" =>
@@ -220,7 +221,8 @@ object RichConfig {
           val toFilters = getFilters("out-filters", obj)
 
 
-          Table(fromTable(0), List(fromTable(1)), fromFilters, None) -> Table(toTable(0), List(toTable(1)), toFilters, None)
+          Table(fromTable(0), List(fromTable(1)), fromFilters, formats = None, tableTag) ->
+            Table(toTable(0), List(toTable(1)), toFilters, formats = None, tableTag)
 
         case TIMESTAMP =>
           val fromTable = obj.toConfig.getOptionalString("in-table").getOrElse("")
@@ -233,7 +235,8 @@ object RichConfig {
           val fromFilters = getFilters("in-filters", obj)
           val toFilters = getFilters("out-filters", obj)
 
-          Table(fromTable, fromColumn, fromFilters, None) -> Table(toTable, toColumn, toFilters, None)
+          Table(fromTable, fromColumn, fromFilters, formats = None, tableTag) ->
+            Table(toTable, toColumn, toFilters, formats = None, tableTag)
 
         case DATETIME =>
           val fromTable = obj.toConfig.getOptionalString("in-table").getOrElse("")
@@ -247,8 +250,8 @@ object RichConfig {
           val fromFilters = getFilters("in-filters", obj)
           val toFilters = getFilters("out-filters", obj)
 
-          Table(fromTable, fromColumnNames, fromFilters, Some(fromColumnFormats)) ->
-            Table(toTable, toColumnNames, toFilters, Some(toColumnFormats))
+          Table(fromTable, fromColumnNames, fromFilters, Some(fromColumnFormats), tableTag) ->
+            Table(toTable, toColumnNames, toFilters, Some(toColumnFormats), tableTag)
 
         case _ =>
           throw new IllegalArgumentException(s"Unsupported column type:[$columnType]")

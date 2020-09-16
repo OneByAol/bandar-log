@@ -75,6 +75,7 @@ class BandarlogsFactoryTest extends FunSuite with MockitoSugar {
         |      {
         |        in-table = "in_table_1:column"
         |        out-table = "out_table_1:column"
+        |        tag = "custom_table_tag"
         |        in-filters = [
         |          {
         |            quoted = true
