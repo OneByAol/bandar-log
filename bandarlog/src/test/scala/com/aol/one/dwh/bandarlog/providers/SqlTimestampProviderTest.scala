@@ -18,7 +18,7 @@ import org.scalatest.mock.MockitoSugar
 
 class SqlTimestampProviderTest extends FunSuite with MockitoSugar {
 
-  private val query = VerticaMaxValuesQuery(Table("table", List("column"), None))
+  private val query = VerticaMaxValuesQuery(Table("table", List("column"), filters = None, formats = None, tag = None))
   private val jdbcConnector = mock[JdbcConnector]
   private val sqlTimestampProvider = new SqlTimestampProvider(jdbcConnector, query)
 

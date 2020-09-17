@@ -210,14 +210,19 @@ object RichConfig {
       underlying.getObjectList("tables").map { obj =>
 
       val columnType = obj.toConfig.getOptionalString("column-type").getOrElse("")
+      val tableTag = obj.toConfig.getOptionalString("tag")
 
       columnType match {
         case "" =>
           logger.warn("This version of config is deprecated. Use column-type `timestamp` instead.")
           val fromTable = obj.toConfig.getOptionalString("in-table").map(_.split(":")).getOrElse(Array("", ""))
           val toTable = obj.toConfig.getOptionalString("out-table").map(_.split(":")).getOrElse(Array("", ""))
+          val fromFilters = getFilters("in-filters", obj)
+          val toFilters = getFilters("out-filters", obj)
 
-          (Table(fromTable(0), List(fromTable(1)), None), Table(toTable(0), List(toTable(1)), None))
+
+          Table(fromTable(0), List(fromTable(1)), fromFilters, formats = None, tableTag) ->
+            Table(toTable(0), List(toTable(1)), toFilters, formats = None, tableTag)
 
         case TIMESTAMP =>
           val fromTable = obj.toConfig.getOptionalString("in-table").getOrElse("")
@@ -227,20 +232,26 @@ object RichConfig {
           if (fromColumn.length > 1 && toColumn.length > 1) {
             throw new IllegalArgumentException(s"Incorrect config. For column type:[$columnType] one dedicated column should be provided.")
           }
+          val fromFilters = getFilters("in-filters", obj)
+          val toFilters = getFilters("out-filters", obj)
 
-          (Table(fromTable, fromColumn, None), Table(toTable, toColumn, None))
+          Table(fromTable, fromColumn, fromFilters, formats = None, tableTag) ->
+            Table(toTable, toColumn, toFilters, formats = None, tableTag)
 
         case DATETIME =>
           val fromTable = obj.toConfig.getOptionalString("in-table").getOrElse("")
           val fromColumns = obj.toConfig.getOptionalStringList("in-columns").map(ColumnParser.parseList).getOrElse(List(("", "")))
-          val fromColumnNames = fromColumns.map { case (column, format) => column }
-          val fromColumnFormats = fromColumns.map { case (column, format) => format }
+          val fromColumnNames = fromColumns.map { case (column, _) => column }
+          val fromColumnFormats = fromColumns.map { case (_, format) => format }
           val toTable = obj.toConfig.getOptionalString("out-table").getOrElse("")
           val toColumns = obj.toConfig.getOptionalStringList("out-columns").map(ColumnParser.parseList).getOrElse(List(("", "")))
-          val toColumnNames = toColumns.map { case (column, format) => column }
-          val toColumnFormats = toColumns.map { case (column, format) => format }
+          val toColumnNames = toColumns.map { case (column, _) => column }
+          val toColumnFormats = toColumns.map { case (_, format) => format }
+          val fromFilters = getFilters("in-filters", obj)
+          val toFilters = getFilters("out-filters", obj)
 
-          (Table(fromTable, fromColumnNames, Some(fromColumnFormats)), Table(toTable, toColumnNames, Some(toColumnFormats)))
+          Table(fromTable, fromColumnNames, fromFilters, Some(fromColumnFormats), tableTag) ->
+            Table(toTable, toColumnNames, toFilters, Some(toColumnFormats), tableTag)
 
         case _ =>
           throw new IllegalArgumentException(s"Unsupported column type:[$columnType]")
@@ -254,6 +265,14 @@ object RichConfig {
         val value = obj.toConfig.getString("value")
 
         Tag(key, value)
+      }
+    }
+
+    private def getFilters(filtersKey: String, config: ConfigObject): Option[List[Filter]] = {
+      config.toConfig.getOptionalObjectList(filtersKey).map { filterConfig =>
+        filterConfig.map(_.toConfig).map { filter =>
+          Filter(filter.getString("key"), filter.getString("value"), filter.getBoolean("quoted"))
+        }
       }
     }
   }

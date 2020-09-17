@@ -22,8 +22,8 @@ import org.scalatest.mock.MockitoSugar
 
 object SqlMetricFactoryTest {
   private val metricPrefix = "sql_prefix"
-  private val inTable = Table("in_test_table", List("in_test_column"), None)
-  private val outTable = Table("out_test_table", List("out_test_column"), None)
+  private val inTable = Table("in_test_table", List("in_test_column"), filters = None, formats = None, tag = None)
+  private val outTable = Table("out_test_table", List("out_test_column"), filters = None, formats = None, tag = None)
 }
 
 class SqlMetricFactoryTest extends FunSuite with MockitoSugar {
@@ -44,6 +44,17 @@ class SqlMetricFactoryTest extends FunSuite with MockitoSugar {
     assert(results.head.provider.isInstanceOf[SqlTimestampProvider])
   }
 
+  test("create sql Metric & Provider for IN metric id with alternative table tag") {
+    mockConnectionPool()
+    val inConnector = ConnectorConfig("vertica", "vertica_config_id", "test-vertica")
+
+    val results = metricFactory.create(IN, metricPrefix, inConnector, Nil, inTable.copy(tag = Some("alt_in_tag")), outTable.copy(tag = Some("alt_out_tag")))
+
+    assert(results.size == 1)
+    assertMetric(results.head.metric, "in_timestamp", List(Tag("in_table", "alt_in_tag"), Tag("in_connector", "test-vertica")))
+    assert(results.head.provider.isInstanceOf[SqlTimestampProvider])
+  }
+
   test("create sql Metric & Provider for OUT metric id") {
     mockConnectionPool()
     val outConnector1 = ConnectorConfig("presto", "presto_config_id", "test-presto")
@@ -59,6 +70,25 @@ class SqlMetricFactoryTest extends FunSuite with MockitoSugar {
 
     val metricProvider2 = results(1)
     assertMetric(metricProvider2.metric, "out_timestamp", List(Tag("out_table", "out_test_table"), Tag("out_connector", "test-vertica")))
+    assert(metricProvider2.provider.isInstanceOf[SqlTimestampProvider])
+  }
+
+  test("create sql Metric & Provider for OUT metric id with alternative table tag") {
+    mockConnectionPool()
+    val outConnector1 = ConnectorConfig("presto", "presto_config_id", "test-presto")
+    val outConnector2 = ConnectorConfig("vertica", "vertica_config_id", "test-vertica")
+
+    val results = metricFactory.create(OUT, metricPrefix, None.orNull, Seq(outConnector1, outConnector2),
+      inTable.copy(tag = Some("alt_in_tag")), outTable.copy(tag = Some("alt_out_tag")))
+
+    assert(results.size == 2)
+
+    val metricProvider1 = results.head
+    assertMetric(metricProvider1.metric, "out_timestamp", List(Tag("out_table", "alt_out_tag"), Tag("out_connector", "test-presto")))
+    assert(metricProvider1.provider.isInstanceOf[SqlTimestampProvider])
+
+    val metricProvider2 = results(1)
+    assertMetric(metricProvider2.metric, "out_timestamp", List(Tag("out_table", "alt_out_tag"), Tag("out_connector", "test-vertica")))
     assert(metricProvider2.provider.isInstanceOf[SqlTimestampProvider])
   }
 

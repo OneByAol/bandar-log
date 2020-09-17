@@ -101,14 +101,23 @@ case class Topic(id: String, values: Set[String], groupId: String)
   * @param table - table name
   * @param columns - columns' names
   * @param formats - format of columns (e.g., yyyy, MM, dd, HH:mm:ss) for datetime column
+  * @param tag - an alternative tag to use for metrics instead of default, which is a table name
   */
-case class Table(table: String, columns: List[String], formats: Option[List[String]])
+case class Table(table: String, columns: List[String], filters: Option[List[Filter]], formats: Option[List[String]], tag: Option[String])
+
+/**
+ * Filter for sql table
+ * @param key - column name
+ * @param value - column value
+ * @param quoted - if column is a string it should be quoted
+ */
+case class Filter(key: String, value: String, quoted: Boolean)
 
 /**
   * Partition column
   *
   * @param columnName - partition name
-  * @param format     - date type column format
+  * @param columnFormat - date type column format
   */
 case class DatetimePatition(columnName: String, columnFormat: String)
 
