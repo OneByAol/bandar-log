@@ -6,7 +6,6 @@ lazy val buildNumber = sys.env.getOrElse("TRAVIS_BUILD_NUMBER", "SNAPSHOT")
 ThisBuild / scalaVersion := "2.12.12"
 ThisBuild / fork := true
 ThisBuild / crossPaths := false
-ThisBuild / updateOptions := updateOptions.value.withCachedResolution(cachedResoluton = true)
 
 ThisBuild / organization := "com.aol.one.dwh"
 ThisBuild / version := s"3.0.$buildNumber"
