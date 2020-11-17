@@ -12,7 +12,7 @@ import sbt._
 object ResolversPlugin extends AutoPlugin {
 
   private val typeSafeResolver   = "Typesafe repository releases" at "https://dl.bintray.com"
-  private val sprayResolver      = "spray repo"                   at "http://repo.spray.io"
+  private val sprayResolver      = "spray repo"                   at "https://repo.spray.io"
 
   private val bintraySbtResolver = Resolver.url("bintray-sbt-plugins", url("https://dl.bintray.com/sbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
 
