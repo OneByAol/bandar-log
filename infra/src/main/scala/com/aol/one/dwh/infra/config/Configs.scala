@@ -103,7 +103,13 @@ case class Topic(id: String, values: Set[String], groupId: String)
   * @param formats - format of columns (e.g., yyyy, MM, dd, HH:mm:ss) for datetime column
   * @param tag - an alternative tag to use for metrics instead of default, which is a table name
   */
-case class Table(table: String, columns: List[String], filters: Option[List[Filter]], formats: Option[List[String]], tag: Option[String])
+case class Table(table: String,
+                 columns: List[String],
+                 filters: Option[List[Filter]],
+                 formats: Option[List[String]],
+                 tag: Option[String],
+                 timestampType: Option[String] = None
+                )
 
 /**
  * Filter for sql table

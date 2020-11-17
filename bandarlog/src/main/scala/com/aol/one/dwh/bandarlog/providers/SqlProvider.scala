@@ -8,6 +8,8 @@
 
 package com.aol.one.dwh.bandarlog.providers
 
+import java.time.Instant
+
 import com.aol.one.dwh.bandarlog.connectors.{GlueConnector, JdbcConnector}
 import com.aol.one.dwh.bandarlog.metrics.{AtomicValue, Value}
 import com.aol.one.dwh.bandarlog.providers.SqlProvider._
@@ -49,10 +51,17 @@ class GlueTimestampProvider(connector: GlueConnector, table: Table) extends Time
   *
   * Provides current time in milliseconds
   */
-class CurrentTimestampProvider extends TimestampProvider {
+class CurrentTimestampProvider(timestampType: Option[String]) extends TimestampProvider {
 
   override def provide(): Value[Timestamp] = {
-    AtomicValue(Option(System.currentTimeMillis()))
+    def now(): Long = {
+      timestampType match {
+        case Some("hour") => Instant.now().getEpochSecond / 3600L
+        case _ => Instant.now().toEpochMilli
+      }
+    }
+
+    AtomicValue(Option(now()))
   }
 }
 

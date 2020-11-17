@@ -54,7 +54,7 @@ class MetricFactory(provider: ProviderFactory) {
 
       outMetricProviders.map { outMetricProvider =>
         val realtimeLagMetric = AtomicMetric[Long](metricPrefix, "realtime_lag", outMetricProvider.metric.tags)
-        val currentTimestampProvider = new CurrentTimestampProvider()
+        val currentTimestampProvider = new CurrentTimestampProvider(outTable.timestampType)
         val realtimeLagProvider = new SqlLagProvider(currentTimestampProvider, outMetricProvider.provider)
         MetricProvider(realtimeLagMetric, realtimeLagProvider)
       }
