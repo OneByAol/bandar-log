@@ -5,7 +5,6 @@
 3. Run docker Bandar-Log image with config file (see [How to run?](#how-to-run) and [Program arguments](#program-arguments))
 
 ## Prerequisites
-- JDK 1.8
 - Docker
 
 ## How to run?

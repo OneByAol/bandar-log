@@ -72,6 +72,6 @@ lazy val `bandarlog` = project
         scalaCache
       ),
 
-    dockerBaseImage := "openjdk:8-jre-slim",
+    dockerBaseImage := "openjdk:11-jre",
     dockerEntrypoint := Seq("bin/start.sh")
   )
