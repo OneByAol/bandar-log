@@ -3,7 +3,7 @@ import sbt.Keys._
 
 lazy val buildNumber = sys.env.getOrElse("TRAVIS_BUILD_NUMBER", "SNAPSHOT")
 
-ThisBuild / scalaVersion := "2.12.8"
+ThisBuild / scalaVersion := "2.12.12"
 ThisBuild / fork := true
 ThisBuild / crossPaths := false
 ThisBuild / updateOptions := updateOptions.value.withCachedResolution(cachedResoluton = true)
