@@ -209,10 +209,12 @@ object RichConfig {
     def getTables: Seq[(Table, Table)] = {
       underlying.getObjectList("tables").map { obj =>
 
-      val columnType = obj.toConfig.getOptionalString("column-type").getOrElse("")
+      val columnType = obj.toConfig.getOptionalString("column-type")
+        .map(_.split(":"))
+        .getOrElse(Array("", ""))
       val tableTag = obj.toConfig.getOptionalString("tag")
 
-      columnType match {
+      columnType.head match {
         case "" =>
           logger.warn("This version of config is deprecated. Use column-type `timestamp` instead.")
           val fromTable = obj.toConfig.getOptionalString("in-table").map(_.split(":")).getOrElse(Array("", ""))
@@ -229,14 +231,17 @@ object RichConfig {
           val fromColumn = obj.toConfig.getOptionalStringList("in-columns").getOrElse(List(""))
           val toTable = obj.toConfig.getOptionalString("out-table").getOrElse("")
           val toColumn = obj.toConfig.getOptionalStringList("out-columns").getOrElse(List(""))
+
           if (fromColumn.length > 1 && toColumn.length > 1) {
             throw new IllegalArgumentException(s"Incorrect config. For column type:[$columnType] one dedicated column should be provided.")
           }
           val fromFilters = getFilters("in-filters", obj)
           val toFilters = getFilters("out-filters", obj)
 
-          Table(fromTable, fromColumn, fromFilters, formats = None, tableTag) ->
-            Table(toTable, toColumn, toFilters, formats = None, tableTag)
+          val timestampType = columnType.lastOption.filterNot(_ == columnType.head)
+
+          Table(fromTable, fromColumn, fromFilters, formats = None, tableTag, timestampType) ->
+            Table(toTable, toColumn, toFilters, formats = None, tableTag, timestampType)
 
         case DATETIME =>
           val fromTable = obj.toConfig.getOptionalString("in-table").getOrElse("")
