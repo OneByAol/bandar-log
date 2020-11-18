@@ -50,7 +50,7 @@ class GlueTimestampProvider(connector: GlueConnector, table: Table) extends Time
 /**
   * Current Timestamp Provider
   *
-  * Provides current time in epoch milliseconds or hours, based on timestamp type provided
+  * Provides current time in epoch milliseconds, seconds, minutes or hours, based on a timestamp type provided
   */
 class CurrentTimestampProvider(timestampType: Option[String]) extends TimestampProvider {
 
