@@ -209,7 +209,9 @@ object RichConfig {
     def getTables: Seq[(Table, Table)] = {
       underlying.getObjectList("tables").map { obj =>
 
-      val columnType = obj.toConfig.getOptionalString("column-type").map(_.split(":")).getOrElse(Array("", ""))
+      val columnType = obj.toConfig.getOptionalString("column-type")
+        .map(_.split(":"))
+        .getOrElse(Array("", ""))
       val tableTag = obj.toConfig.getOptionalString("tag")
 
       columnType.head match {

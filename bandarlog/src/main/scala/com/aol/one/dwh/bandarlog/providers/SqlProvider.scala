@@ -12,6 +12,7 @@ import java.time.Instant
 
 import com.aol.one.dwh.bandarlog.connectors.{GlueConnector, JdbcConnector}
 import com.aol.one.dwh.bandarlog.metrics.{AtomicValue, Value}
+import com.aol.one.dwh.bandarlog.providers.CurrentTimestampProvider.{MINUTES_IN_HOUR, SECONDS_IN_MINUTE}
 import com.aol.one.dwh.bandarlog.providers.SqlProvider._
 import com.aol.one.dwh.infra.config.Table
 import com.aol.one.dwh.infra.sql.{QueryResulthandler, _}
@@ -49,20 +50,26 @@ class GlueTimestampProvider(connector: GlueConnector, table: Table) extends Time
 /**
   * Current Timestamp Provider
   *
-  * Provides current time in milliseconds
+  * Provides current time in epoch milliseconds or hours, based on timestamp type provided
   */
 class CurrentTimestampProvider(timestampType: Option[String]) extends TimestampProvider {
 
   override def provide(): Value[Timestamp] = {
     def now(): Long = {
       timestampType match {
-        case Some("hour") => Instant.now().getEpochSecond / 3600L
+        case Some("hour") => Instant.now().getEpochSecond / SECONDS_IN_MINUTE / MINUTES_IN_HOUR // convert to epoch hours
+        case Some("minute") => Instant.now().getEpochSecond / SECONDS_IN_MINUTE                 // convert to epoch minutes
+        case Some("second") => Instant.now().getEpochSecond
         case _ => Instant.now().toEpochMilli
       }
     }
 
     AtomicValue(Option(now()))
   }
+}
+
+object CurrentTimestampProvider {
+  val SECONDS_IN_MINUTE, MINUTES_IN_HOUR = 60
 }
 
 /**
