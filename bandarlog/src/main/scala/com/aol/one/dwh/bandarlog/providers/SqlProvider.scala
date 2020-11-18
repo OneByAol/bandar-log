@@ -56,11 +56,12 @@ class CurrentTimestampProvider(timestampType: Option[String]) extends TimestampP
 
   override def provide(): Value[Timestamp] = {
     def now(): Long = {
+      val currentTime = Instant.now()
       timestampType match {
-        case Some("hour") => Instant.now().getEpochSecond / SECONDS_IN_MINUTE / MINUTES_IN_HOUR // convert to epoch hours
-        case Some("minute") => Instant.now().getEpochSecond / SECONDS_IN_MINUTE                 // convert to epoch minutes
-        case Some("second") => Instant.now().getEpochSecond
-        case _ => Instant.now().toEpochMilli
+        case Some("hour") => currentTime.getEpochSecond / SECONDS_IN_MINUTE / MINUTES_IN_HOUR // convert to epoch hours
+        case Some("minute") => currentTime.getEpochSecond / SECONDS_IN_MINUTE                 // convert to epoch minutes
+        case Some("second") => currentTime.getEpochSecond
+        case _ => currentTime.toEpochMilli
       }
     }
 
