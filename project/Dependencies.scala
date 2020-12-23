@@ -13,6 +13,7 @@ object V {
   val datadogMetrics      = "1.1.2"
   val dbUtils             = "1.5"
   val presto              = "0.181"
+  val mySql               = "8.0.17"
   val consulClient        = "1.2.1"
   val scalaCache          = "0.9.4"
   val scopt               = "3.7.1"
@@ -31,6 +32,7 @@ object Dependencies {
   val datadogMetrics        = "org.coursera"             %  "metrics-datadog"              % V.datadogMetrics
   val dbUtils               = "commons-dbutils"          %  "commons-dbutils"              % V.dbUtils
   val presto                = "com.facebook.presto"      %  "presto-jdbc"                  % V.presto
+  val mySql                 = "mysql"                    %  "mysql-connector-java"         % V.mySql
   val consulClient          = "com.ecwid.consul"         %  "consul-api"                   % V.consulClient
   val hikariPool            = "com.zaxxer"               %  "HikariCP"                     % V.hikariPool
   val slf4j                 = "org.slf4j"                %  "slf4j-api"                    % V.slf4j

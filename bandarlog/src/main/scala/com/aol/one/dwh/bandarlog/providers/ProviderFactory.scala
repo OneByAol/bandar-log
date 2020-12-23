@@ -14,7 +14,7 @@ import com.aol.one.dwh.infra.config.RichConfig._
 import com.aol.one.dwh.infra.config.{ConnectorConfig, Table}
 import com.aol.one.dwh.infra.sql.MaxValuesQuery
 import com.aol.one.dwh.infra.sql.pool.ConnectionPoolHolder
-import com.aol.one.dwh.infra.sql.pool.SqlSource.{GLUE, PRESTO, VERTICA}
+import com.aol.one.dwh.infra.sql.pool.SqlSource._
 import com.typesafe.config.Config
 
 class ProviderFactory(mainConfig: Config, connectionPoolHolder: ConnectionPoolHolder) {
@@ -22,7 +22,7 @@ class ProviderFactory(mainConfig: Config, connectionPoolHolder: ConnectionPoolHo
   def create(connector: ConnectorConfig, table: Table): TimestampProvider = {
     connector.connectorType match {
 
-      case VERTICA | PRESTO => {
+      case VERTICA | PRESTO | MYSQL => {
         val query = MaxValuesQuery.get(connector.connectorType)(table)
         val connectionPool = connectionPoolHolder.get(connector)
         new SqlTimestampProvider(JdbcConnector(connector.connectorType, connectionPool), query)

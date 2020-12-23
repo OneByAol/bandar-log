@@ -14,9 +14,10 @@ import com.aol.one.dwh.infra.sql.Setting
 import com.aol.one.dwh.infra.sql.pool.HikariConnectionPool
 import com.aol.one.dwh.infra.util.LogTrait
 import com.aol.one.dwh.infra.sql.Query
-import com.aol.one.dwh.infra.sql.pool.SqlSource.{PRESTO, VERTICA}
+import com.aol.one.dwh.infra.sql.pool.SqlSource._
 import com.facebook.presto.jdbc.PrestoConnection
 import com.google.common.cache.CacheBuilder
+import com.mysql.cj.jdbc.JdbcConnection
 import com.vertica.jdbc.VerticaConnection
 import org.apache.commons.dbutils.ResultSetHandler
 import resource.managed
@@ -72,9 +73,16 @@ object JdbcConnector {
     }
   }
 
+  private class MySQLConnector(connectionPool: HikariConnectionPool) extends JdbcConnector(connectionPool) {
+    override def applySetting(connection: Connection, statement: Statement, setting: Setting): Unit = {
+      connection.unwrap(classOf[JdbcConnection]).setClientInfo(setting.key, setting.value)
+    }
+  }
+
   def apply(connectorType: String, connectionPool: HikariConnectionPool): JdbcConnector = connectorType match {
     case VERTICA => new VerticaConnector(connectionPool)
     case PRESTO => new PrestoConnector(connectionPool)
+    case MYSQL => new MySQLConnector(connectionPool)
     case _ => throw new IllegalArgumentException(s"Can't create connector for SQL source:[$connectorType]")
   }
 }

@@ -19,6 +19,7 @@ import com.zaxxer.hikari.HikariConfig
 
 object SqlSource {
   val VERTICA = "vertica"
+  val MYSQL = "mysql"
   val PRESTO = "presto"
   val GLUE = "glue"
 }
@@ -28,6 +29,7 @@ object PoolConfig {
     connectorConf.connectorType match {
       case VERTICA => VerticaPoolConfig(mainConf.getJdbcConfig(connectorConf.configId))
       case PRESTO => PrestoPoolConfig(mainConf.getJdbcConfig(connectorConf.configId))
+      case MYSQL => MySQLPoolConfig(mainConf.getJdbcConfig(connectorConf.configId))
       case _ => throw new IllegalArgumentException(s"Unsupported connector type:[${connectorConf.connectorType}]")
     }
   }
@@ -40,6 +42,21 @@ private object PrestoPoolConfig {
     config.setDriverClassName(classOf[PrestoDriver].getName)
     config.setJdbcUrl(s"jdbc:presto://${jdbcConfig.host}:${jdbcConfig.port}/hive/${jdbcConfig.dbName}")
     config.setUsername(jdbcConfig.username)
+    config.setMaximumPoolSize(jdbcConfig.maxPoolSize)
+    config.setConnectionTimeout(jdbcConfig.connectionTimeout)
+    config.setReadOnly(true)
+    config
+  }
+}
+
+private object MySQLPoolConfig {
+  def apply(jdbcConfig: JdbcConfig): HikariConfig = {
+    val config: HikariConfig = new HikariConfig
+    config.setPoolName(s"mysql-pool-${jdbcConfig.dbName}")
+    config.setDriverClassName(classOf[com.mysql.cj.jdbc.Driver].getName)
+    config.setJdbcUrl(s"jdbc:mysql://${jdbcConfig.host}:${jdbcConfig.port}/${jdbcConfig.dbName}")
+    config.setUsername(jdbcConfig.username)
+    config.setPassword(jdbcConfig.password)
     config.setMaximumPoolSize(jdbcConfig.maxPoolSize)
     config.setConnectionTimeout(jdbcConfig.connectionTimeout)
     config.setReadOnly(true)

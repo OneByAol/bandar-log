@@ -3,7 +3,7 @@ package com.aol.one.dwh.infra.sql
 import com.aol.one.dwh.infra.config.Table
 import org.apache.commons.dbutils.ResultSetHandler
 
-object QueryResulthandler {
+object QueryResultHandler {
 
   def get(query: Query): ResultSetHandler[Option[Long]] = query match {
       case VerticaMaxValuesQuery(table) => getHandler(table)

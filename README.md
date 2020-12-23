@@ -109,6 +109,7 @@ aws-glue-source-config {
    - Kafka _(version >= 0.10.2)_
    - SQL
         - Vertica _(compatible with vertica driver 6.0.0)_
+        - MySQL _(compatible with mysql driver 8.x)_
         - Presto _(compatible with presto driver 0.181)_
         - AWS Glue Data Catalog _(compatible and tested with aws-java-sdk-glue 1.11.388)_ <br/>
         `*` you can easily add new data source

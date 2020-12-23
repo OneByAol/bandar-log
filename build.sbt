@@ -43,6 +43,7 @@ lazy val `infra` = project
         typesafeConfig,
         consulClient,
         presto,
+        mySql,
         dbUtils,
         scopt,
         hikariPool,
