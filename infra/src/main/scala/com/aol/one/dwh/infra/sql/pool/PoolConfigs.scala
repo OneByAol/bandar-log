@@ -21,6 +21,7 @@ object SqlSource {
   val VERTICA = "vertica"
   val PRESTO = "presto"
   val GLUE = "glue"
+  val CLICKHOUSE = "clickhouse"
 }
 
 object PoolConfig {
@@ -28,6 +29,7 @@ object PoolConfig {
     connectorConf.connectorType match {
       case VERTICA => VerticaPoolConfig(mainConf.getJdbcConfig(connectorConf.configId))
       case PRESTO => PrestoPoolConfig(mainConf.getJdbcConfig(connectorConf.configId))
+      case CLICKHOUSE => ClickhousePoolConfig(mainConf.getJdbcConfig(connectorConf.configId))
       case _ => throw new IllegalArgumentException(s"Unsupported connector type:[${connectorConf.connectorType}]")
     }
   }
@@ -39,6 +41,20 @@ private object PrestoPoolConfig {
     config.setPoolName(s"presto-pool-${jdbcConfig.dbName}")
     config.setDriverClassName(classOf[PrestoDriver].getName)
     config.setJdbcUrl(s"jdbc:presto://${jdbcConfig.host}:${jdbcConfig.port}/hive/${jdbcConfig.dbName}")
+    config.setUsername(jdbcConfig.username)
+    config.setMaximumPoolSize(jdbcConfig.maxPoolSize)
+    config.setConnectionTimeout(jdbcConfig.connectionTimeout)
+    config.setReadOnly(true)
+    config
+  }
+}
+
+private object ClickhousePoolConfig {
+  def apply(jdbcConfig: JdbcConfig): HikariConfig = {
+    val config: HikariConfig = new HikariConfig
+    config.setPoolName(s"clickhouse-pool-${jdbcConfig.dbName}")
+    config.setDriverClassName(classOf[cc.blynk.clickhouse.ClickHouseDriver].getName)
+    config.setJdbcUrl(s"jdbc:clickhouse://${jdbcConfig.host}:${jdbcConfig.port}/${jdbcConfig.dbName}")
     config.setUsername(jdbcConfig.username)
     config.setMaximumPoolSize(jdbcConfig.maxPoolSize)
     config.setConnectionTimeout(jdbcConfig.connectionTimeout)

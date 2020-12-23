@@ -48,6 +48,7 @@ lazy val `infra` = project
         hikariPool,
         scalaArm,
         awsGlue,
+        clickhouse,
         scalaCache,
         kafka4scala,
         kafkaClients,

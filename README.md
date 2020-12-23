@@ -110,6 +110,7 @@ aws-glue-source-config {
    - SQL
         - Vertica _(compatible with vertica driver 6.0.0)_
         - Presto _(compatible with presto driver 0.181)_
+        - Clickhouse _(compatible with [blynkkk clickhouse4j]([https://github.com/blynkkk/clickhouse4j]) 1.1.1)_
         - AWS Glue Data Catalog _(compatible and tested with aws-java-sdk-glue 1.11.388)_ <br/>
         `*` you can easily add new data source
 

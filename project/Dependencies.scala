@@ -22,6 +22,7 @@ object V {
   val scalatest           = "3.0.7"
   val mockito             = "1.10.19"
   val awsGlue             = "1.11.388"
+  val clickhouse          = "1.1.1"
   val kafka               = "2.2.0"
   val parser              = "1.1.2"
 }
@@ -39,6 +40,7 @@ object Dependencies {
   val scopt                 = "com.github.scopt"         %% "scopt"                        % V.scopt
   val scalaArm              = "com.jsuereth"             %% "scala-arm"                    % V.scalaArm
   val awsGlue               = "com.amazonaws"            %  "aws-java-sdk-glue"            % V.awsGlue
+  val clickhouse            = "cc.blynk.clickhouse"      %  "clickhouse4j"                 % V.clickhouse
   val kafka4scala           = "org.apache.kafka"         %% "kafka"                        % V.kafka
   val kafkaClients          = "org.apache.kafka"         %  "kafka-clients"                % V.kafka
   val parserCombinators     = "org.scala-lang.modules"   %% "scala-parser-combinators"     % V.parser

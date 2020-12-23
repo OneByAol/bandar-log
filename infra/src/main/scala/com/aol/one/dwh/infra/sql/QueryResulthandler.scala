@@ -7,7 +7,8 @@ object QueryResulthandler {
 
   def get(query: Query): ResultSetHandler[Option[Long]] = query match {
       case VerticaMaxValuesQuery(table) => getHandler(table)
-      case PrestoMaxValuesQuery(table)  => getHandler(table)
+      case PrestoMaxValuesQuery(table) => getHandler(table)
+      case ClickhouseMaxValuesQuery(table) => getHandler(table)
     }
 
   private def getHandler(table: Table): ResultSetHandler[Option[Long]] = {
