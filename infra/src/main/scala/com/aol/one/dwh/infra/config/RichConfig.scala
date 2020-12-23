@@ -115,6 +115,16 @@ object RichConfig {
       )
     }
 
+    def getPushGatewayConfig(configId: String): PushGatewayConfig = {
+      val pushGatewayConfig = underlying.getConfig(configId)
+
+      PushGatewayConfig(
+        pushGatewayConfig.getOptionalString("host"),
+        pushGatewayConfig.getOptionalInt("port"),
+        pushGatewayConfig.getOptionalString("push-job")
+      )
+    }
+
     def getSchedulerConfig: SchedulerConfig = {
       val schedulerConfig = underlying.getConfig("scheduler")
 

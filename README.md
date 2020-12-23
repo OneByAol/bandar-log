@@ -297,7 +297,7 @@ report {                                           # each metric will be reporte
 
 reporters = [                                      # list of reporters, where each metric should be reported
   {
-    type = "datadog"                               # reporter type
+    type = "datadog"                               # reporter type, can be 'datadog' or 'pushgateway'
     config-id = "datadog-config"                   # reference to reporter config
   }
 ]
@@ -312,6 +312,20 @@ _configuration:_
 ```
 datadog-config {                      # datadog reporter config id
   host = null                         # use 'null' to use local datadog agent or specify host value  
+}
+```
+
+#### PushGateway
+Alternatively, you can use PushGateway reporter. <br/>
+Inside reporter configuration you can specify host, port and push job name for pushGateway reporter. <br/>
+There is also experimental support of Prometheus Labels to keep the metrics data aggregated, look at [Reporting Tags](#reporting-tags) section for more details.
+
+_configuration:_
+```
+pgtw-config {                                          # pushgateway config
+  push-job = "my-push-job"                             # pushgateway push job name. defaults to bandarlog-${reportConf.prefix}-push-job if omitted.
+  host = null                                          # use 'null' to use local pushgateway agent or specify host value
+  port = 9091                                          # by default, port 9091 will be used if this configuration is omitted
 }
 ```
 

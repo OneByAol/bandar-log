@@ -30,6 +30,6 @@ object CustomTags {
   */
 object TagsFormatter {
   val datadogFormat: (Tag) => String = (tag: Tag) => s"${tag.key}:${tag.value}"
-
+  val pushgatewayFormat: (Tag) => String = (tag: Tag) => s"""|${tag.key}={"${tag.value}"}""".stripMargin
   def format(tags: List[Tag], formatFun: Tag => String): List[String] = tags map formatFun
 }

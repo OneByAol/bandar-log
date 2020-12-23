@@ -12,7 +12,7 @@ import com.aol.one.dwh.infra.config.{ReportConfig, ReporterConfig, Tag}
 import com.aol.one.dwh.infra.config.RichConfig._
 import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.Config
-import TagsFormatter.datadogFormat
+import TagsFormatter._
 
 /**
   * Base trait for all Metric Reporters
@@ -32,6 +32,10 @@ object MetricReporter {
         val datadogTags = TagsFormatter.format(tags, datadogFormat)
         val datadogConfig = mainConf.getDatadogConfig(reporter.configId)
         new DatadogMetricReporter(datadogConfig, datadogTags, metricRegistry, reportConf)
+      case "pushgateway" =>
+        val pushGatewayTags = TagsFormatter.format(tags, pushgatewayFormat)
+        val pushGatewayConfig = mainConf.getPushGatewayConfig(reporter.configId)
+        new PushGatewayMetricReporter(pushGatewayConfig, pushGatewayTags, metricRegistry, reportConf)
       case _ =>
         throw new IllegalArgumentException(s"Unsupported reporter:[$reporter]")
     }

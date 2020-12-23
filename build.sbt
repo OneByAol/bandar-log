@@ -51,7 +51,10 @@ lazy val `infra` = project
         scalaCache,
         kafka4scala,
         kafkaClients,
-        parserCombinators
+        parserCombinators,
+        metricsCore,
+        prometheusDropwizard,
+        prometheusPushgateway
       )
   )
 

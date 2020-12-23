@@ -54,6 +54,15 @@ case class GlueConfig(
 case class DatadogConfig(host: Option[String])
 
 /**
+  * Pushgateway server config
+  *
+  * @param host    - PushGateway host
+  * @param port    - PushGateway port
+  * @param pushJob - PushGateway push job name
+  */
+case class PushGatewayConfig(host: Option[String], port: Option[Int], pushJob: Option[String])
+
+/**
   * Scheduler Config
   *
   * @param delayPeriod      - delay in milliseconds before task is to be executed
