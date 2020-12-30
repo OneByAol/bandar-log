@@ -66,19 +66,17 @@ object AppConfig extends LogTrait {
   private def resolveCkmsProperties(conf: Config): Config = {
     val it = conf.entrySet().iterator()
     var updatedConf: Config = conf
+    val pattern = Pattern.compile("\\$\\{(.*?)\\}")
 
     while (it.hasNext) {
       val property = it.next()
       val key = property.getKey
       val value = property.getValue
-
-      val pattern = Pattern.compile("\\$\\{(.*?)\\}")
       val matcher = pattern.matcher(value.render())
       if (value.valueType().name().toLowerCase.contains("string") && matcher.find()){
         val resolvedCkmsValue = ConfigValueFactory.fromAnyRef(resolveCkmsProperty(matcher.group(1)))
         updatedConf = updatedConf.withValue(key, resolvedCkmsValue)
       }
-
     }
 
     updatedConf
