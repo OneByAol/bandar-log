@@ -11,8 +11,9 @@ package com.aol.one.dwh.infra.config
 import com.aol.one.dwh.infra.consul.ConsulManager
 import com.aol.one.dwh.infra.util.{EnvUtil, LogTrait}
 import com.ecwid.consul.v1.ConsulClient
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import resource.managed
+import java.util.regex.Pattern
 
 import scala.io.Source
 
@@ -26,7 +27,9 @@ case class AppParams(
 
 object AppConfig extends LogTrait {
 
-  def apply(args: Array[String]): Config = readCmdParams(args) match {
+  def apply(args: Array[String]): Config = resolveCkmsProperties(fetchConfig(args))
+
+  private def fetchConfig(args: Array[String]) = readCmdParams(args) match {
     case Some(params: AppParams) =>
       params.configStrategy match {
         case "consul"     => fetchConfigFromConsul(params)
@@ -53,6 +56,48 @@ object AppConfig extends LogTrait {
     val confStr = for (resource <- managed(from)) yield resource.mkString
     confStr.tried.toOption.map(ConfigFactory.parseString).map(conf => conf.resolve)
       .getOrElse(throw new RuntimeException(s"Can't fetch config from path [$params]"))
+  }
+
+
+  private def resolveCkmsProperty(property: String): String = {
+    property + "_resolved"
+  }
+
+  private def resolveCkmsProperties(conf: Config): Config = {
+    val it = conf.entrySet().iterator()
+    var updatedConf: Config = conf
+
+    while (it.hasNext) {
+      val property = it.next()
+      val key = property.getKey
+      val value = property.getValue
+
+      // val pattern = Pattern.compile("\\$\\{(.*?)\\}")   <--- the real one
+      val pattern = Pattern.compile("a(.*?)a") // <--- the test one
+      val matcher = pattern.matcher(value.render())
+      if (value.valueType().name().toLowerCase.contains("string") && matcher.find()){
+        val resolvedCkmsValue = ConfigValueFactory.fromAnyRef(resolveCkmsProperty(matcher.group(1)))
+        updatedConf = updatedConf.withValue(key, resolvedCkmsValue)
+      }
+
+    }
+
+    // print results start - delete this part from here
+    val iterator = updatedConf.entrySet().iterator()
+    while (iterator.hasNext) {
+      val property = iterator.next()
+      val key = property.getKey
+      val value = property.getValue
+
+
+      // scalastyle:off
+      println(key + ": " + value.render())
+      // scalastyle:on
+    }
+    // print results end - delete this part till here
+
+
+    updatedConf
   }
 
   private def fetchConfigFromResources: Config = {
