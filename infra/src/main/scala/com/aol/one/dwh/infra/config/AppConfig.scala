@@ -72,8 +72,7 @@ object AppConfig extends LogTrait {
       val key = property.getKey
       val value = property.getValue
 
-      // val pattern = Pattern.compile("\\$\\{(.*?)\\}")   <--- the real one
-      val pattern = Pattern.compile("a(.*?)a") // <--- the test one
+      val pattern = Pattern.compile("\\$\\{(.*?)\\}")
       val matcher = pattern.matcher(value.render())
       if (value.valueType().name().toLowerCase.contains("string") && matcher.find()){
         val resolvedCkmsValue = ConfigValueFactory.fromAnyRef(resolveCkmsProperty(matcher.group(1)))
@@ -81,21 +80,6 @@ object AppConfig extends LogTrait {
       }
 
     }
-
-    // print results start - delete this part from here
-    val iterator = updatedConf.entrySet().iterator()
-    while (iterator.hasNext) {
-      val property = iterator.next()
-      val key = property.getKey
-      val value = property.getValue
-
-
-      // scalastyle:off
-      println(key + ": " + value.render())
-      // scalastyle:on
-    }
-    // print results end - delete this part till here
-
 
     updatedConf
   }
