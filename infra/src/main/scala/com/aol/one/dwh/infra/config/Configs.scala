@@ -118,7 +118,7 @@ case class Table(
  * @param value - column value
  * @param quoted - if column is a string it should be quoted
  */
-case class Filter(key: String, value: String, quoted: Boolean)
+case class Filter(key: String, value: String, quoted: Boolean, dynamic: Boolean)
 
 /**
   * Partition column

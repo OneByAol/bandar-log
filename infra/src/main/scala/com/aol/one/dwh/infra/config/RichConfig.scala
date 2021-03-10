@@ -276,7 +276,12 @@ object RichConfig {
     private def getFilters(filtersKey: String, config: ConfigObject): Option[List[Filter]] = {
       config.toConfig.getOptionalObjectList(filtersKey).map { filterConfig =>
         filterConfig.map(_.toConfig).map { filter =>
-          Filter(filter.getString("key"), filter.getString("value"), filter.getBoolean("quoted"))
+          Filter(
+            filter.getString("key"),
+            filter.getString("value"),
+            filter.getOptionalBoolean("quoted").getOrElse(false),
+            filter.getOptionalBoolean("dynamic").getOrElse(false)
+          )
         }
       }
     }

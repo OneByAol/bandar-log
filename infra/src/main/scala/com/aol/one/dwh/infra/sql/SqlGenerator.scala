@@ -2,6 +2,8 @@ package com.aol.one.dwh.infra.sql
 
 import com.aol.one.dwh.infra.config.{Filter, Table}
 
+import java.time.{Duration, Instant}
+
 object SqlGenerator {
 
   def generate(table: Table): String = {
@@ -20,7 +22,21 @@ object SqlGenerator {
   }
 
   private def getValue(filter: Filter): String = {
-    if (filter.quoted) s"'${filter.value}'"
-    else filter.value
+    if (filter.dynamic) buildDynamicValue(filter) else buildStaticValue(filter)
+  }
+
+  private def buildDynamicValue(filter: Filter): String = {
+    val unixMsPattern = "(timestamp_unix_ms:)(.*)".r
+    filter.value match {
+      case unixMsPattern(_, value) => {
+        val timestamp = Instant.now().minus(Duration.parse(s"PT$value"))
+        timestamp.toEpochMilli.toString
+      }
+      case _ => throw new RuntimeException("Unknown dynamic filter pattern: " + filter.value)
+    }
+  }
+
+  private def buildStaticValue(filter: Filter): String = {
+    if (filter.quoted) s"'${filter.value}'" else filter.value
   }
 }
