@@ -17,8 +17,17 @@ object SqlGenerator {
     }
 
     table.filters.map { filters =>
-      s"$baseSql WHERE ${filters.map(filter => s"${filter.key} = ${getValue(filter)}").mkString(" AND ")}"
+      s"$baseSql WHERE ${filters.map(filter => s"${filter.key} ${getCondition(filter)} ${getValue(filter)}").mkString(" AND ")}"
     }.getOrElse(baseSql)
+  }
+
+  private def getCondition(filter: Filter): String = filter.condition match {
+    case "lt" => "<"
+    case "lte" => "<="
+    case "gt" => ">"
+    case "gte" => ">="
+    case "eq" => "="
+    case _ => throw new RuntimeException("Unknown condition " + filter.condition)
   }
 
   private def getValue(filter: Filter): String = {

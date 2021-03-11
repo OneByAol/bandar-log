@@ -116,9 +116,11 @@ case class Table(
  * Filter for sql table
  * @param key - column name
  * @param value - column value
+ * @param condition - comparison condition (eq, gt, gte, lt, lte)
  * @param quoted - if column is a string it should be quoted
+ * @param dynamic - if column's value is dynamically generated
  */
-case class Filter(key: String, value: String, quoted: Boolean, dynamic: Boolean)
+case class Filter(key: String, value: String, condition: String, quoted: Boolean, dynamic: Boolean)
 
 /**
   * Partition column

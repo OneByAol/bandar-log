@@ -279,8 +279,9 @@ object RichConfig {
           Filter(
             filter.getString("key"),
             filter.getString("value"),
-            filter.getOptionalBoolean("quoted").getOrElse(false),
-            filter.getOptionalBoolean("dynamic").getOrElse(false)
+            filter.getString("condition"),
+            filter.getBoolean("quoted"),
+            filter.getBoolean("dynamic")
           )
         }
       }
