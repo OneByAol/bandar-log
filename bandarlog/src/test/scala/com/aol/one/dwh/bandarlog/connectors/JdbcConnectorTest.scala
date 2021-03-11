@@ -9,24 +9,35 @@
 package com.aol.one.dwh.bandarlog.connectors
 
 import java.sql.{Connection, DatabaseMetaData, ResultSet, Statement}
-
 import com.aol.one.dwh.infra.config._
 import com.aol.one.dwh.infra.sql.pool.HikariConnectionPool
 import com.aol.one.dwh.infra.sql.{ListStringResultHandler, Setting, VerticaMaxValuesQuery}
 import org.apache.commons.dbutils.ResultSetHandler
-import org.mockito.Mockito.when
-import org.scalatest.FunSuite
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers.anyString
+import org.mockito.Mockito.{verify, when}
+import org.scalatest.{BeforeAndAfter, FunSuite}
 import org.scalatest.mock.MockitoSugar
 
-class JdbcConnectorTest extends FunSuite with MockitoSugar {
+class JdbcConnectorTest extends FunSuite with BeforeAndAfter with MockitoSugar {
 
-  private val statement = mock[Statement]
-  private val resultSet = mock[ResultSet]
-  private val connectionPool = mock[HikariConnectionPool]
-  private val connection = mock[Connection]
-  private val databaseMetaData = mock[DatabaseMetaData]
-  private val resultSetHandler = mock[ResultSetHandler[Long]]
-  private val listStringResultHandler = mock[ListStringResultHandler]
+  private var statement: Statement = _
+  private var resultSet: ResultSet = _
+  private var connectionPool: HikariConnectionPool = _
+  private var connection: Connection = _
+  private var databaseMetaData: DatabaseMetaData = _
+  private var resultSetHandler: ResultSetHandler[Long] = _
+  private var listStringResultHandler: ListStringResultHandler = _
+
+  before {
+    statement = mock[Statement]
+    resultSet = mock[ResultSet]
+    connectionPool = mock[HikariConnectionPool]
+    connection = mock[Connection]
+    databaseMetaData = mock[DatabaseMetaData]
+    resultSetHandler = mock[ResultSetHandler[Long]]
+    listStringResultHandler = mock[ListStringResultHandler]
+  }
 
   test("check run query result for numeric batch_id column") {
     val resultValue = 100L
@@ -45,9 +56,12 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
     assert(result == resultValue)
   }
 
-  test("check run query result for numeric batch_id column with filter") {
+  test("check run query result for numeric batch_id column with static filter") {
     val resultValue = 100L
-    val filters = List(Filter("string_col", "value", quoted = true), Filter("int_col", "1", quoted = false))
+    val filters = List(
+      Filter("string_col", "value", "eq", quoted = true, dynamic = false),
+      Filter("int_col", "1", "eq", quoted = false, dynamic = false)
+    )
     val table = Table("table", List("column"), Some(filters), formats = None, tag = None)
     val query = VerticaMaxValuesQuery(table)
     when(connectionPool.getConnection).thenReturn(connection)
@@ -62,6 +76,27 @@ class JdbcConnectorTest extends FunSuite with MockitoSugar {
     val result = new DefaultJdbcConnector(connectionPool).runQuery(query, resultSetHandler)
 
     assert(result == resultValue)
+  }
+
+  test("check run query result for numeric batch_id column with dynamic filter") {
+    val resultValue = 100L
+    val filters = List(Filter("int_col", "timestamp_unix_ms:1H", "gte", quoted = false, dynamic = true))
+    val table = Table("table", List("column"), Some(filters), formats = None, tag = None)
+    val query = VerticaMaxValuesQuery(table)
+    when(connectionPool.getConnection).thenReturn(connection)
+    when(connectionPool.getName).thenReturn("connection_pool_name")
+    when(connection.createStatement()).thenReturn(statement)
+    when(statement.executeQuery(anyString())).thenReturn(resultSet)
+    when(connection.getMetaData).thenReturn(databaseMetaData)
+    when(databaseMetaData.getURL).thenReturn("connection_url")
+    when(resultSetHandler.handle(resultSet)).thenReturn(resultValue)
+
+    val result = new DefaultJdbcConnector(connectionPool).runQuery(query, resultSetHandler)
+
+    assert(result == resultValue)
+    val sqlCaptor = ArgumentCaptor.forClass(classOf[String])
+    verify(statement).executeQuery(sqlCaptor.capture())
+    assert(sqlCaptor.getValue.matches("(SELECT MAX\\(column\\) AS column FROM table WHERE int_col >= )(\\d{13})"))
   }
 
   test("check run query result for date/time partitions") {

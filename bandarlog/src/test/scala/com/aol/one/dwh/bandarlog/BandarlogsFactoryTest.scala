@@ -78,18 +78,24 @@ class BandarlogsFactoryTest extends FunSuite with MockitoSugar {
         |        tag = "custom_table_tag"
         |        in-filters = [
         |          {
+        |            dynamic = false
         |            quoted = true
+        |            condition = "eq"
         |            key = "string_column"
         |            value = "value"
         |          },
         |          {
+        |            dynamic = false
         |            quoted = false
+        |            condition = "gte"
         |            key = "double_column"
         |            value = 0.1
         |          }
         |        ]
         |        out-filters = [
         |          {
+        |            dynamic = false
+        |            condition = "eq"
         |            quoted = false
         |            key = "int_column"
         |            value = 1
