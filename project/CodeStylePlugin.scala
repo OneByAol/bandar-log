@@ -22,6 +22,7 @@ object CodeStylePlugin extends AutoPlugin {
     sources in doc in Compile := List(),
 
     // by default set build as failed if scala check style errors found
+    Global / excludeLintKeys += scalastyleFailOnError,
     ThisBuild / scalastyleFailOnError := true,
 
     Compile / scalastyleConfig := configFile

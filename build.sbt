@@ -3,10 +3,9 @@ import sbt.Keys._
 
 lazy val buildNumber = sys.env.getOrElse("TRAVIS_BUILD_NUMBER", "SNAPSHOT")
 
-ThisBuild / scalaVersion := "2.12.8"
+ThisBuild / scalaVersion := "2.12.12"
 ThisBuild / fork := true
 ThisBuild / crossPaths := false
-ThisBuild / updateOptions := updateOptions.value.withCachedResolution(cachedResoluton = true)
 
 ThisBuild / organization := "com.aol.one.dwh"
 ThisBuild / version := s"3.0.$buildNumber"
@@ -73,6 +72,6 @@ lazy val `bandarlog` = project
         scalaCache
       ),
 
-    dockerBaseImage := "openjdk:8-jre-slim",
+    dockerBaseImage := "openjdk:11-jre",
     dockerEntrypoint := Seq("bin/start.sh")
   )
